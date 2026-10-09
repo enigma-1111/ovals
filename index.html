@@ -7,64 +7,69 @@
 <meta name="description" content="Oval Room museum. Holders enter. Visitors may look, play, and buy." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='11' ry='14' fill='none' stroke='%23c6a15b' stroke-width='2'/%3E%3C/svg%3E" />
 <style>
-  :root { --bg:#0e0b09; --line:#3a2e24; --gold:#c6a15b; --paper:#e7dcc8; --ink:#1c140e; --muted:#a89884; --velvet:#3b1820; }
+  :root { --bg:#0e0b09; --line:#3a2e24; --gold:#c6a15b; --paper:#e7dcc8; --ink:#1c140e; --muted:#a89884; }
   * { box-sizing:border-box; }
-  body { margin:0; color:var(--paper); font:16px/1.45 Georgia, "Iowan Old Style", serif; background:#0e0b09; }
-  .lobby { min-height:100vh; background:radial-gradient(900px 480px at 50% 0%, #3a241c, #0e0b09 62%); }
+  body { margin:0; color:var(--paper); font:16px/1.45 Georgia, serif; background:#0e0b09; }
   header { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:22px 6vw 8px; }
   h1 { margin:0; font-size:15px; letter-spacing:.2em; font-weight:500; text-transform:uppercase; }
   h1 span, a { color:var(--gold); }
   .sub, .note, .meta { color:var(--muted); }
-  button, select, input { font:14px/1 Georgia, serif; color:var(--paper); background:transparent; border:1px solid var(--line); border-radius:999px; padding:8px 14px; }
+  button, select, input { font:14px/1 Georgia, serif; color:var(--paper); background:#171310; border:1px solid var(--line); border-radius:999px; padding:10px 14px; }
   button { cursor:pointer; }
-  button.gold { border-color:var(--gold); color:var(--gold); }
+  button.gold, a.gold { border-color:var(--gold); color:var(--gold); }
   button.on { background:var(--paper); color:var(--ink); }
-  main { padding:8px 6vw 72px; }
-  .crest { width:88px; height:112px; margin:18px auto 8px; border:2px solid var(--gold); border-radius:50%; display:grid; place-items:center; color:var(--gold); letter-spacing:.14em; font-size:11px; }
-  .doors { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px; margin:18px 0; }
-  .doorbtn { border-radius:18px; min-height:92px; background:linear-gradient(#2a1c18, #140f0d); text-align:left; }
+  main { padding:8px 6vw 80px; }
+  .crest { width:88px; height:112px; margin:12px auto; border:2px solid var(--gold); border-radius:50%; display:grid; place-items:center; color:var(--gold); letter-spacing:.14em; font-size:11px; }
+  .doors { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px, 1fr)); gap:12px; margin:16px 0; }
+  .doorbtn { border-radius:18px; min-height:88px; text-align:left; background:linear-gradient(#2a1c18, #140f0d); }
   .doorbtn small { display:block; color:var(--muted); margin-top:6px; }
-  .doorbtn.locked { opacity:.72; }
-  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 18px; }
-  .wall { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:18px; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 16px; }
+  .wall { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:16px; }
   .card { background:linear-gradient(#241c17, #120e0c); border:1px solid var(--line); border-radius:18px; padding:12px; text-align:center; }
-  .card.dim { opacity:.38; }
+  .card.dim { opacity:.4; }
   .card.plate { background:radial-gradient(circle at 50% 30%, #5a2430, #140e10 72%); }
   .frame { aspect-ratio:4/5; display:grid; place-items:center; }
-  .frame img, .frame svg { width:86%; height:92%; object-fit:contain; }
+  .frame img { width:86%; height:92%; object-fit:contain; }
   .chips { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
   .chips span { border:1px solid var(--line); border-radius:999px; padding:3px 8px; font-size:11px; color:var(--muted); }
-  .buy { margin:18px 0; padding:18px; border:1px solid var(--gold); border-radius:18px; background:#1a1012; }
-  .sheet { position:fixed; inset:0; background:rgba(0,0,0,.72); display:none; place-items:end center; }
+  .buy { margin:14px 0; padding:16px; border:1px solid var(--gold); border-radius:18px; background:#1a1012; }
+  .sheet { position:fixed; inset:0; background:rgba(0,0,0,.72); display:none; place-items:end center; z-index:5; }
   .sheet.on { display:grid; }
-  .panel { width:min(440px, 100%); background:#171310; border-radius:18px 18px 0 0; padding:18px; }
+  .panel { width:min(460px, 100%); background:#171310; border-radius:18px 18px 0 0; padding:18px 18px 28px; }
   .panel button, .panel a { display:block; width:100%; margin:8px 0; text-align:center; text-decoration:none; }
+  .row { display:flex; gap:8px; }
+  .row input { flex:1; min-width:0; }
   @media (max-width:700px) { header { flex-direction:column; align-items:flex-start; } }
 </style>
 </head>
-<body class="lobby">
+<body>
 <header>
   <div>
     <h1>Oval <span>Room</span></h1>
-    <div class="sub" id="status">Museum lobby · Robinhood Chain</div>
+    <div class="sub" id="status">Museum lobby</div>
   </div>
   <button id="connect" class="gold">Connect wallet</button>
 </header>
 <main>
   <div class="crest">OVAL</div>
-  <p class="note" id="note">Visitors may walk the lobby and play. An oval opens the private rooms.</p>
+  <p class="note" id="note">Look and play from anywhere. An oval opens the private rooms.</p>
   <div class="doors" id="doors"></div>
   <div class="filters" id="tools"></div>
   <div id="stage"></div>
 </main>
 <div class="sheet" id="sheet">
   <div class="panel">
-    <p>Connect on Robinhood Chain.</p>
-    <button id="use-wallet">Use this browser wallet</button>
-    <a class="gold" id="mm" href="https://metamask.app.link/dapp/ovals.vercel.app">Open in MetaMask</a>
-    <a class="gold" href="https://rainbow.me/dapp/ovals.vercel.app">Open in Rainbow</a>
-    <a class="gold" href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Open in Coinbase Wallet</a>
+    <p>Connect from wherever you are.</p>
+    <button id="use-mm" class="gold">MetaMask, phone or desktop</button>
+    <button id="use-here">Wallet already in this browser</button>
+    <div class="row">
+      <input id="addr" placeholder="Or paste a wallet address" autocapitalize="off" spellcheck="false" />
+      <button id="use-addr">Enter</button>
+    </div>
+    <a href="https://metamask.app.link/dapp/ovals.vercel.app">Open this page in MetaMask</a>
+    <a href="https://rainbow.me/dapp/ovals.vercel.app">Open this page in Rainbow</a>
     <button id="close-sheet">Close</button>
+    <p class="note" id="sheet-note"></p>
   </div>
 </div>
 <script>
@@ -75,7 +80,7 @@ const BUY = "https://opensea.io/collection/oval-room";
 const ROOMS = [
   { id:"lobby", name:"Lobby", open:true, blurb:"Look" },
   { id:"play", name:"Play", open:true, blurb:"Guess the gaze" },
-  { id:"hall", name:"Gold hall", open:true, blurb:"One public room" },
+  { id:"hall", name:"Gold hall", open:true, blurb:"Public room" },
   { id:"plates", name:"Plate alcove", open:false, blurb:"Holders" },
   { id:"mine", name:"My wall", open:false, blurb:"Holders" },
   { id:"sitting", name:"Sitting", open:false, blurb:"Holders" }
@@ -84,23 +89,18 @@ const stage = document.getElementById("stage");
 const note = document.getElementById("note");
 const doors = document.getElementById("doors");
 const tools = document.getElementById("tools");
-let account = null, holder = false, held = [], room = "lobby", cache = new Map(), provider = null;
+let account = null, holder = false, held = [], room = "lobby", cache = new Map(), mm = null;
 
-function providerList() {
-  const eth = window.ethereum;
-  if (!eth) return [];
-  if (eth.providers && eth.providers.length) return eth.providers;
-  return [eth];
-}
 function trait(nft, key) {
   const a = (nft.attributes || []).find(x => (x.trait_type || "").toLowerCase() === key.toLowerCase());
   return a ? String(a.value) : "";
 }
 function hexPad(n) { return Number(n).toString(16).padStart(64, "0"); }
+function validAddress(v) { return /^0x[a-fA-F0-9]{40}$/.test((v || "").trim()); }
 async function rpc(method, params) {
   const res = await fetch(RPC, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify({ jsonrpc:"2.0", id:1, method, params }) });
   const json = await res.json();
-  if (json.error) throw new Error(json.error.message || "rpc");
+  if (json.error) throw new Error(json.error.message || "The chain did not answer.");
   return json.result;
 }
 function decodeAbiString(hex) {
@@ -113,10 +113,10 @@ function decodeAbiString(hex) {
 }
 async function loadToken(id) {
   id = Number(id);
+  if (!id) throw new Error("bad id");
   if (cache.has(id)) return cache.get(id);
   const result = await rpc("eth_call", [{ to:CONTRACT, data:"0xc87b56dd" + hexPad(id) }, "latest"]);
-  const raw = decodeAbiString(result);
-  const meta = JSON.parse(atob(raw.split(",")[1]));
+  const meta = JSON.parse(atob(decodeAbiString(result).split(",")[1]));
   const nft = { id, ...meta, method:trait(meta,"Method"), year:trait(meta,"Year"), gaze:trait(meta,"Gaze"), hair:trait(meta,"Hair"), epoch:trait(meta,"Epoch"), jewel:trait(meta,"Jewel") };
   cache.set(id, nft);
   return nft;
@@ -125,6 +125,22 @@ async function gather(ids) {
   const out = [];
   for (const id of ids) { try { out.push(await loadToken(id)); } catch (e) {} }
   return out;
+}
+async function balanceOf(address) {
+  const data = "0x70a08231" + address.toLowerCase().replace("0x", "").padStart(64, "0");
+  const result = await rpc("eth_call", [{ to:CONTRACT, data }, "latest"]);
+  return parseInt(result, 16) || 0;
+}
+async function heldIds(address) {
+  const topic = "0x" + address.toLowerCase().replace("0x", "").padStart(64, "0");
+  const logs = await rpc("eth_getLogs", [{ address:CONTRACT, topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef", null, topic], fromBlock:"0x0", toBlock:"latest" }]);
+  const ids = [...new Set(logs.map(l => parseInt(l.topics[3], 16)).filter(Boolean))];
+  const mine = [];
+  for (const id of ids.slice(0, 60)) {
+    const owner = await rpc("eth_call", [{ to:CONTRACT, data:"0x6352211e" + hexPad(id) }, "latest"]);
+    if (owner && owner.toLowerCase().endsWith(address.toLowerCase().replace("0x", ""))) mine.push(id);
+  }
+  return mine;
 }
 function card(nft, dim) {
   const el = document.createElement("article");
@@ -137,14 +153,14 @@ function card(nft, dim) {
   return el;
 }
 function buyBox(text) {
-  return `<div class="buy"><strong>${text}</strong><p class="note">The mint is over. Sweeps are on OpenSea.</p><p><a href="${BUY}" target="_blank" rel="noreferrer">Buy an Oval</a></p></div>`;
+  return `<div class="buy"><strong>${text}</strong><p class="note">Mint is over. The sweep is on OpenSea.</p><p><a href="${BUY}" target="_blank" rel="noreferrer">Buy an Oval</a></p></div>`;
 }
 function paintDoors() {
   doors.innerHTML = "";
   ROOMS.forEach(r => {
     const locked = !r.open && !holder;
     const b = document.createElement("button");
-    b.className = "doorbtn" + (room === r.id ? " on" : "") + (locked ? " locked" : "");
+    b.className = "doorbtn" + (room === r.id ? " on" : "");
     b.innerHTML = `${r.name}<small>${locked ? "Locked · buy an oval" : r.blurb}</small>`;
     b.onclick = () => { room = r.id; render(); };
     doors.appendChild(b);
@@ -153,22 +169,19 @@ function paintDoors() {
 function arrange(list) {
   const sort = (document.getElementById("sort") || {}).value || "id";
   const focus = (document.getElementById("focus") || {}).value || "";
-  const copy = list.slice();
-  copy.sort((a, b) => sort === "year" ? Number(a.year || 0) - Number(b.year || 0) : sort === "method" ? String(a.method).localeCompare(String(b.method)) : a.id - b.id);
-  return copy.map(n => ({ n, dim: focus && n.epoch !== focus && n.method !== focus }));
+  return list.slice().sort((a, b) => sort === "year" ? Number(a.year || 0) - Number(b.year || 0) : sort === "method" ? String(a.method).localeCompare(String(b.method)) : a.id - b.id)
+    .map(n => ({ n, dim: focus && n.epoch !== focus && n.method !== focus }));
 }
 function toolBar() {
   tools.innerHTML = holder ? `<select id="sort"><option value="id">Arrange by number</option><option value="year">Arrange by year</option><option value="method">Arrange by method</option></select>
     <select id="focus"><option value="">No spotlight</option><option>Pencil</option><option>Ink</option><option>Pixel</option><option>Plate</option><option>Gold Ground</option><option>Plaster</option></select>
     <input id="lookup" inputmode="numeric" placeholder="Token number"><button id="find">Look up</button><button id="share">Share sitting</button>` : "";
-  const sort = document.getElementById("sort");
-  const focus = document.getElementById("focus");
+  const sort = document.getElementById("sort"), focus = document.getElementById("focus");
   if (sort) sort.onchange = render;
   if (focus) focus.onchange = render;
   const find = document.getElementById("find");
   if (find) find.onclick = async () => {
     const id = Number(document.getElementById("lookup").value);
-    if (!id) return;
     stage.innerHTML = "";
     try { stage.appendChild(card(await loadToken(id), false)); } catch { stage.innerHTML = "<p class='note'>No portrait at that number.</p>"; }
   };
@@ -178,21 +191,24 @@ function toolBar() {
     try { await navigator.clipboard.writeText(url); note.textContent = "Sitting link copied."; } catch { note.textContent = url; }
   };
 }
-async function heldIds(address) {
-  const topic = "0x" + address.toLowerCase().replace("0x", "").padStart(64, "0");
-  const logs = await rpc("eth_getLogs", [{ address:CONTRACT, topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef", null, topic], fromBlock:"0x0", toBlock:"latest" }]);
-  const ids = [...new Set(logs.map(l => parseInt(l.topics[3], 16)))];
-  const mine = [];
-  for (const id of ids) {
-    const owner = await rpc("eth_call", [{ to:CONTRACT, data:"0x6352211e" + hexPad(id) }, "latest"]);
-    if (owner && owner.toLowerCase().endsWith(address.toLowerCase().replace("0x", ""))) mine.push(id);
-  }
-  return mine;
+async function enter(address, label) {
+  account = address;
+  localStorage.setItem("oval.address", address);
+  document.getElementById("connect").textContent = label || (address.slice(0, 6) + "…" + address.slice(-4));
+  document.getElementById("sheet").classList.remove("on");
+  note.textContent = "Checking this address for an oval.";
+  let count = 0;
+  try { count = await balanceOf(address); } catch (err) { note.textContent = err.message; }
+  holder = count > 0;
+  try { held = await heldIds(address); } catch { held = []; }
+  if (holder && !held.length) note.textContent = "You hold " + count + ". The wall list is still catching up. Look one up by number.";
+  room = holder ? "mine" : "lobby";
+  render();
 }
 async function render() {
   paintDoors();
   toolBar();
-  document.getElementById("status").textContent = holder ? "Holder · private rooms open" : account ? "Visitor · private rooms locked" : "Museum lobby · Robinhood Chain";
+  document.getElementById("status").textContent = holder ? "Holder · rooms open" : account ? "Visitor · private rooms locked" : "Museum lobby";
   if ((room === "plates" || room === "mine" || room === "sitting") && !holder) {
     note.textContent = "That door opens for oval holders.";
     stage.innerHTML = buyBox("This room is for holders.");
@@ -200,14 +216,13 @@ async function render() {
   }
   if (room === "lobby") {
     note.textContent = holder ? "The house is open." : "Walk the lobby. Play if you like. An oval opens the rest.";
-    const list = arrange(await gather([1, 2, 3, 4, 8, 20]));
     stage.className = "wall";
     stage.innerHTML = holder ? "" : buyBox("Hold an oval to open your wall, the plate alcove, and the sitting.");
-    list.forEach(x => stage.appendChild(card(x.n, x.dim)));
+    (arrange(await gather([1, 2, 3, 4, 8, 20]))).forEach(x => stage.appendChild(card(x.n, x.dim)));
     return;
   }
   if (room === "play") {
-    note.textContent = "Visitor play. Name the gaze.";
+    note.textContent = "Name the gaze.";
     const nft = await loadToken(4);
     stage.innerHTML = "";
     stage.appendChild(card(nft, false));
@@ -217,24 +232,23 @@ async function render() {
     ["Aside", "Down", "Direct", "Past you"].forEach(g => {
       const b = document.createElement("button");
       b.textContent = g;
-      b.onclick = () => { box.insertAdjacentHTML("beforeend", g === nft.gaze ? "<p>Yes. That gaze.</p>" : "<p class='note'>Not that one.</p>"); };
+      b.onclick = () => box.insertAdjacentHTML("beforeend", g === nft.gaze ? "<p>Yes. That gaze.</p>" : "<p class='note'>Not that one.</p>");
       box.appendChild(b);
     });
-    if (!holder) box.insertAdjacentHTML("beforeend", `<p><a href="${BUY}" target="_blank" rel="noreferrer">Buy an Oval to open the rooms</a></p>`);
+    if (!holder) box.insertAdjacentHTML("beforeend", `<p><a href="${BUY}">Buy an Oval to open the rooms</a></p>`);
     stage.appendChild(box);
     return;
   }
   if (room === "hall") {
-    note.textContent = "The public hall. Other epochs stay in the private rooms.";
-    const list = arrange(await gather([1, 2, 3, 4, 8, 15, 20]));
+    note.textContent = "The public hall.";
     stage.className = "wall";
     stage.innerHTML = "";
-    list.forEach(x => stage.appendChild(card(x.n, x.dim)));
+    (arrange(await gather([1, 2, 3, 4, 8, 15, 20]))).forEach(x => stage.appendChild(card(x.n, x.dim)));
     return;
   }
   if (room === "plates") {
     note.textContent = "Plate alcove.";
-    const list = (await gather(held.concat([1, 8, 20, 40, 64, 96]))).filter(n => /plate/i.test(n.method || ""));
+    const list = (await gather(held.concat([64, 96, 128]))).filter(n => /plate/i.test(n.method || ""));
     stage.className = "wall";
     stage.innerHTML = list.length ? "" : "<p class='note'>No plate in this stretch. Look one up by number.</p>";
     list.forEach(n => stage.appendChild(card(n, false)));
@@ -243,59 +257,63 @@ async function render() {
   note.textContent = room === "sitting" ? "Your sitting." : "Your wall.";
   const list = arrange(await gather(held.slice(0, 48)));
   stage.className = "wall";
-  stage.innerHTML = list.length ? "" : "<p class='note'>No ovals on this wallet.</p>";
+  stage.innerHTML = list.length ? "" : buyBox("No ovals found on this address yet.");
   list.forEach(x => stage.appendChild(card(x.n, x.dim)));
 }
-async function ensureChain() {
-  const id = await provider.request({ method:"eth_chainId" });
-  if (id === CHAIN) return;
-  try { await provider.request({ method:"wallet_switchEthereumChain", params:[{ chainId:CHAIN }] }); }
-  catch (err) {
-    if (err.code === 4902 || (err.data && err.data.originalError && err.data.originalError.code === 4902)) {
-      await provider.request({ method:"wallet_addEthereumChain", params:[{ chainId:CHAIN, chainName:"Robinhood Chain", nativeCurrency:{ name:"Ether", symbol:"ETH", decimals:18 }, rpcUrls:[RPC], blockExplorerUrls:["https://robinhoodchain.blockscout.com"] }] });
-    } else throw err;
+async function connectInjected(eth) {
+  const id = await eth.request({ method:"eth_chainId" });
+  if (id !== CHAIN) {
+    try { await eth.request({ method:"wallet_switchEthereumChain", params:[{ chainId:CHAIN }] }); }
+    catch (err) {
+      if (err.code === 4902) {
+        await eth.request({ method:"wallet_addEthereumChain", params:[{ chainId:CHAIN, chainName:"Robinhood Chain", nativeCurrency:{ name:"Ether", symbol:"ETH", decimals:18 }, rpcUrls:[RPC], blockExplorerUrls:["https://robinhoodchain.blockscout.com"] }] });
+      } else throw err;
+    }
   }
-}
-async function finishConnect(accounts) {
-  account = accounts && accounts[0];
-  if (!account) { note.textContent = "The wallet did not return an account."; return; }
-  document.getElementById("connect").textContent = account.slice(0, 6) + "…" + account.slice(-4);
-  document.getElementById("sheet").classList.remove("on");
-  note.textContent = "Checking this wallet for an oval.";
-  try { held = await heldIds(account); } catch (err) { held = []; note.textContent = "Could not read holdings yet. " + err.message; }
-  holder = held.length > 0;
-  room = holder ? "mine" : "lobby";
-  render();
+  const accounts = await eth.request({ method:"eth_requestAccounts" });
+  if (!accounts || !accounts[0]) throw new Error("The wallet returned no account.");
+  await enter(accounts[0], accounts[0].slice(0, 6) + "…" + accounts[0].slice(-4));
 }
 document.getElementById("connect").onclick = () => {
-  const list = providerList();
-  if (!list.length) { document.getElementById("sheet").classList.add("on"); return; }
   document.getElementById("sheet").classList.add("on");
-  document.getElementById("use-wallet").textContent = list.length > 1 ? "Use browser wallet (" + list.length + ")" : "Use this browser wallet";
+  document.getElementById("sheet-note").textContent = window.ethereum ? "A wallet is in this browser." : "No wallet in this browser. Use MetaMask, or paste an address.";
 };
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
-document.getElementById("use-wallet").onclick = async () => {
-  const list = providerList();
-  provider = list[0];
-  if (!provider) { note.textContent = "No wallet in this browser. Open the site inside MetaMask or Rainbow."; return; }
+document.getElementById("use-here").onclick = async () => {
+  if (!window.ethereum) { document.getElementById("sheet-note").textContent = "Nothing to connect here. Use MetaMask, or paste an address."; return; }
+  try { await connectInjected(window.ethereum); }
+  catch (err) { document.getElementById("sheet-note").textContent = err.message || "Connection refused."; }
+};
+document.getElementById("use-mm").onclick = async () => {
+  document.getElementById("sheet-note").textContent = "Opening MetaMask. On a phone it will switch apps.";
   try {
-    await ensureChain();
-    const accounts = await provider.request({ method:"eth_requestAccounts" });
-    await finishConnect(accounts);
+    if (!mm) {
+      const mod = await import("https://esm.sh/@metamask/sdk@0.33.1");
+      const SDK = mod.MetaMaskSDK || mod.default;
+      mm = new SDK({ dappMetadata:{ name:"Oval Room", url:"https://ovals.vercel.app" }, preferDesktop:false, checkInstallationImmediately:false });
+      await mm.init();
+    }
+    const eth = mm.getProvider();
+    await connectInjected(eth);
   } catch (err) {
-    note.textContent = err && err.message ? err.message : "Wallet connection was refused.";
+    document.getElementById("sheet-note").textContent = (err && err.message) || "MetaMask did not open. Paste an address, or open this page in the wallet app.";
   }
 };
+document.getElementById("use-addr").onclick = async () => {
+  const address = document.getElementById("addr").value.trim();
+  if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "That is not a wallet address."; return; }
+  await enter(address);
+};
+const saved = localStorage.getItem("oval.address");
 const sitting = new URLSearchParams(location.search).get("sitting");
 if (sitting) {
-  room = "sitting";
   gather(sitting.split(",").map(Number).filter(Boolean)).then(list => {
     note.textContent = "A shared sitting.";
     stage.className = "wall";
     list.forEach(n => stage.appendChild(card(n, false)));
   });
-}
-render();
+} else if (saved && validAddress(saved)) enter(saved);
+else render();
 </script>
 </body>
 </html>
