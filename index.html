@@ -58,14 +58,15 @@
 </main>
 <div class="sheet" id="sheet">
   <div class="panel">
-    <p>Connect a wallet, or paste the address.</p>
+    <p id="sheet-title">Connect</p>
     <div id="found"></div>
     <button id="use-here" class="gold">Use the wallet in this browser</button>
-    <input id="addr" placeholder="Paste wallet address, 0x…" autocapitalize="off" autocorrect="off" spellcheck="false" />
+    <a id="link-mm" href="https://metamask.app.link/dapp/ovals.vercel.app">Open in MetaMask</a>
+    <a id="link-rb" href="https://rainbow.me/dapp/ovals.vercel.app">Open in Rainbow</a>
+    <a id="link-cb" href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Open in Coinbase Wallet</a>
+    <a id="link-tw" href="https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fovals.vercel.app">Open in Trust Wallet</a>
+    <input id="addr" placeholder="Or paste wallet address, 0x…" autocapitalize="off" autocorrect="off" spellcheck="false" />
     <button id="use-addr">Enter with this address</button>
-    <a href="https://metamask.app.link/dapp/ovals.vercel.app">Open in MetaMask</a>
-    <a href="https://rainbow.me/dapp/ovals.vercel.app">Open in Rainbow</a>
-    <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Open in Coinbase Wallet</a>
     <button id="close-sheet">Close</button>
     <p class="note" id="sheet-note"></p>
   </div>
@@ -272,6 +273,7 @@ async function connectInjected(eth) {
   if (!accounts || !accounts[0]) throw new Error("The wallet returned no account.");
   await enter(accounts[0], accounts[0].slice(0, 6) + "…" + accounts[0].slice(-4));
 }
+function isPhone() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); }
 function discovered() {
   const list = found.slice();
   const eth = window.ethereum;
@@ -281,30 +283,58 @@ function discovered() {
 }
 window.addEventListener("eip6963:announceProvider", (event) => {
   const p = event.detail && event.detail.provider;
-  if (p && !found.includes(p)) found.push(p);
+  const name = event.detail && event.detail.info && event.detail.info.name;
+  if (p && !found.includes(p)) { p._ovalName = name; found.push(p); }
 });
 window.dispatchEvent(new Event("eip6963:requestProvider"));
+function loadMetaMask() {
+  return new Promise((resolve, reject) => {
+    if (window.MetaMaskSDK) return resolve(window.MetaMaskSDK);
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@metamask/sdk@0.33.1/dist/browser/umd/metamask-sdk.js";
+    s.onload = () => resolve(window.MetaMaskSDK);
+    s.onerror = () => reject(new Error("MetaMask did not load."));
+    document.head.appendChild(s);
+  });
+}
 document.getElementById("connect").onclick = () => {
   document.getElementById("sheet").classList.add("on");
+  const phone = isPhone();
   const list = discovered();
+  document.getElementById("sheet-title").textContent = phone ? "Open your wallet app" : "Connect on this computer";
   const box = document.getElementById("found");
   box.innerHTML = "";
-  list.forEach((p, i) => {
+  list.forEach((p) => {
     const b = document.createElement("button");
     b.className = "gold";
-    b.textContent = "Connect wallet " + (i + 1);
+    b.textContent = p._ovalName || "Wallet in this browser";
     b.onclick = () => connectInjected(p).catch(err => document.getElementById("sheet-note").textContent = err.message || "Connection refused.");
     box.appendChild(b);
   });
   document.getElementById("use-here").style.display = list.length ? "none" : "block";
-  document.getElementById("sheet-note").textContent = list.length ? "A wallet is in this browser." : "No wallet in this browser. Paste an address, or open the page in a wallet app.";
+  document.getElementById("use-here").textContent = phone ? "Try wallet in this browser" : "Use MetaMask on this computer";
+  document.getElementById("sheet-note").textContent = phone
+    ? "On a phone, open this page inside MetaMask, Rainbow, Coinbase, or Trust. Paste an address if you only want to look."
+    : (list.length ? "Pick the wallet in this browser." : "Install a wallet, or paste an address to look.");
 };
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
 document.getElementById("use-here").onclick = async () => {
   const list = discovered();
-  if (!list.length) { document.getElementById("sheet-note").textContent = "Nothing to connect here. Paste an address, or open this page in MetaMask."; return; }
-  try { await connectInjected(list[0]); }
-  catch (err) { document.getElementById("sheet-note").textContent = err.message || "Connection refused."; }
+  if (list.length) {
+    try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Connection refused."; }
+    return;
+  }
+  if (isPhone()) { location.href = "https://metamask.app.link/dapp/ovals.vercel.app"; return; }
+  document.getElementById("sheet-note").textContent = "Opening MetaMask.";
+  try {
+    const SDK = await loadMetaMask();
+    const MetaMaskSDK = SDK.MetaMaskSDK || SDK;
+    const sdk = new MetaMaskSDK({ dappMetadata:{ name:"Oval Room", url:"https://ovals.vercel.app" }, preferDesktop:true, checkInstallationImmediately:false });
+    await sdk.init();
+    await connectInjected(sdk.getProvider());
+  } catch (err) {
+    document.getElementById("sheet-note").textContent = "No wallet here. Paste an address, or open the page in MetaMask.";
+  }
 };
 document.getElementById("use-addr").onclick = async () => {
   const address = document.getElementById("addr").value.trim();
