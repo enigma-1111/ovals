@@ -4,73 +4,65 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Oval Room</title>
-<meta name="description" content="Oval Room museum. Holders enter. Visitors may look, play, and buy." />
+<meta name="description" content="Walk the Oval Room. Holders enter the private halls." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='11' ry='14' fill='none' stroke='%23c6a15b' stroke-width='2'/%3E%3C/svg%3E" />
 <style>
-  :root { --gold:#c6a15b; --paper:#f0e6d4; --ink:#140e0c; --muted:#b5a48f; }
+  :root { --gold:#d7b56a; --paper:#f3eadc; --muted:#b7a48d; }
   * { box-sizing:border-box; }
-  body { margin:0; color:var(--paper); font:16px/1.45 Georgia, serif; background:#1a100e; }
-  .room { min-height:100vh; background:
-    radial-gradient(900px 420px at 50% 0%, rgba(198,161,91,.16), transparent 55%),
-    linear-gradient(#2a1b16, #120c0b 40%, #1a100e); }
-  header { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:22px 6vw 0; }
-  h1 { margin:0; letter-spacing:.22em; font-size:14px; font-weight:500; }
-  h1 span { color:var(--gold); }
-  .sub, .note, .meta { color:var(--muted); }
-  button, select, input, a.btn { font:14px/1 Georgia, serif; color:var(--paper); background:rgba(20,12,10,.55); border:1px solid #5a4634; border-radius:999px; padding:10px 14px; }
-  button, a.btn { cursor:pointer; text-decoration:none; display:inline-block; }
-  button.gold { border-color:var(--gold); color:var(--gold); }
-  button.on { background:var(--paper); color:var(--ink); }
-  main { padding:10px 6vw 80px; }
-  .rail { height:8px; margin:22px 0 8px; background:linear-gradient(#8a7048, #3d2c1c); border-radius:4px; box-shadow:0 8px 16px rgba(0,0,0,.35); }
-  .doors { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px, 1fr)); gap:14px; }
-  .doorbtn { min-height:118px; border-radius:70px 70px 16px 16px; border:3px solid #8a7048; background:
-    radial-gradient(circle at 50% 30%, #4a3024, #1a100e 70%); text-align:center; padding-top:28px; }
-  .doorbtn small { display:block; color:var(--muted); margin-top:8px; }
-  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
-  .wall { display:grid; grid-template-columns:repeat(auto-fill, minmax(168px, 1fr)); gap:22px 16px; }
-  .card { text-align:center; }
-  .frame { background:#1c120f; border:8px solid #8a7048; border-radius:80px 80px 18px 18px; box-shadow:0 16px 24px rgba(0,0,0,.4), inset 0 0 0 2px #c6a15b; aspect-ratio:4/5; display:grid; place-items:center; }
-  .card.plate .frame { border-color:#c6a15b; background:radial-gradient(circle at 50% 30%, #5a2430, #1a1012 72%); }
-  .frame img { width:78%; height:84%; object-fit:contain; }
-  .name { margin:8px 0 0; font-size:14px; }
-  .chips { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:6px; }
-  .chips span { border:1px solid #5a4634; border-radius:999px; padding:2px 7px; font-size:11px; color:var(--muted); }
-  .buy { margin:16px 0; padding:16px; border:1px solid var(--gold); border-radius:18px; background:rgba(74,28,36,.45); }
-  .sheet { position:fixed; inset:0; background:rgba(0,0,0,.72); display:none; place-items:end center; z-index:5; }
+  body { margin:0; color:var(--paper); font:16px/1.4 Palatino, Georgia, serif; background:#120c0a; }
+  .gallery { min-height:100vh; background:
+    radial-gradient(520px 280px at 50% 18%, rgba(215,181,106,.22), transparent 60%),
+    linear-gradient(#3a241c 0%, #1a100e 42%, #100c0a 100%); }
+  header { display:flex; justify-content:space-between; align-items:center; padding:18px 7vw 0; }
+  h1 { margin:0; letter-spacing:.28em; font-size:12px; font-weight:500; }
+  button, input, a.quiet { font:13px/1 Palatino, Georgia, serif; color:var(--paper); background:transparent; border:1px solid rgba(215,181,106,.45); border-radius:999px; padding:8px 12px; }
+  button { cursor:pointer; }
+  .room-name { text-align:center; letter-spacing:.34em; font-size:11px; color:var(--gold); margin:28px 0 6px; }
+  .whisper { text-align:center; color:var(--muted); font-size:13px; min-height:1.2em; }
+  .feature { width:min(280px, 70vw); margin:18px auto 8px; }
+  .oval { background:#1b120f; border:10px solid #8d7046; border-radius:50%; aspect-ratio:4/5; display:grid; place-items:center; box-shadow:0 24px 40px rgba(0,0,0,.45), inset 0 0 0 2px var(--gold); }
+  .oval img { width:74%; height:82%; object-fit:contain; }
+  .plaque { width:min(220px, 60vw); margin:12px auto 0; background:#cfc3a4; color:#2a2118; text-align:center; padding:8px 10px 10px; font-size:12px; }
+  .plaque b { display:block; letter-spacing:.08em; }
+  .halls { display:flex; gap:10px; overflow:auto; padding:22px 7vw 8px; }
+  .arch { flex:0 0 108px; height:148px; border:2px solid #8d7046; border-bottom:none; border-radius:70px 70px 0 0; background:linear-gradient(#2a1c16, #120c0a); color:var(--paper); }
+  .arch small { display:block; color:var(--muted); margin-top:6px; }
+  .arch.on { box-shadow:inset 0 0 24px rgba(215,181,106,.35); }
+  .wall { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:28px 16px; padding:10px 7vw 72px; }
+  .card .oval { border-width:7px; }
+  .card.plate .oval { border-color:var(--gold); background:radial-gradient(circle at 50% 30%, #5c2430, #140e10 70%); }
+  .rope { margin:18px 7vw; border-top:2px solid #8d7046; text-align:center; padding-top:14px; }
+  .rope a { color:var(--gold); }
+  .sheet { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; place-items:end center; }
   .sheet.on { display:grid; }
-  .panel { width:min(460px, 100%); background:#1a120f; border-radius:18px 18px 0 0; padding:18px 18px 28px; }
-  .panel button, .panel a, .panel input { display:block; width:100%; margin:8px 0; text-align:center; }
-  @media (max-width:700px) { header { flex-direction:column; align-items:flex-start; } }
+  .panel { width:min(440px,100%); background:#1a120f; padding:18px 18px 28px; border-radius:18px 18px 0 0; }
+  .panel button, .panel a, .panel input { display:block; width:100%; margin:8px 0; text-align:center; text-decoration:none; }
+  .play { text-align:center; padding:0 7vw 24px; }
+  .play button { margin:6px; }
 </style>
 </head>
-<body class="room">
+<body class="gallery">
 <header>
-  <div>
-    <h1>OVAL <span>ROOM</span></h1>
-    <div class="sub" id="status">Museum lobby</div>
-  </div>
-  <button id="connect" class="gold">Connect wallet</button>
+  <h1>OVAL ROOM</h1>
+  <button id="connect">Enter</button>
 </header>
-<main>
-  <div class="rail"></div>
-  <p class="note" id="note">The gallery is open. An oval opens the private rooms.</p>
-  <div class="doors" id="doors"></div>
-  <div class="filters" id="tools"></div>
-  <div id="stage" class="wall"></div>
-</main>
+<p class="room-name" id="room-name">VESTIBULE</p>
+<p class="whisper" id="note"></p>
+<div class="feature" id="feature"></div>
+<div class="halls" id="doors"></div>
+<div id="stage"></div>
 <div class="sheet" id="sheet">
   <div class="panel">
-    <p id="sheet-title">Connect</p>
+    <p>The desk</p>
     <div id="found"></div>
-    <button id="use-here" class="gold">Use the wallet in this browser</button>
-    <a href="https://rainbow.me/dapp/ovals.vercel.app">Open in Rainbow</a>
-    <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Open in Coinbase Wallet</a>
-    <a href="https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fovals.vercel.app">Open in Trust Wallet</a>
-    <input id="addr" placeholder="Or paste wallet address, 0x…" autocapitalize="off" autocorrect="off" spellcheck="false" />
-    <button id="use-addr">Enter with this address</button>
-    <button id="close-sheet">Close</button>
-    <p class="note" id="sheet-note"></p>
+    <button id="use-here">Wallet in this browser</button>
+    <a href="https://rainbow.me/dapp/ovals.vercel.app">Rainbow</a>
+    <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Coinbase Wallet</a>
+    <a href="https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fovals.vercel.app">Trust Wallet</a>
+    <input id="addr" placeholder="Paste 0x address" autocapitalize="off" spellcheck="false" />
+    <button id="use-addr">Check this address</button>
+    <button id="close-sheet">Step back</button>
+    <p class="whisper" id="sheet-note"></p>
   </div>
 </div>
 <script>
@@ -80,22 +72,20 @@ const RPC = "https://rpc.mainnet.chain.robinhood.com";
 const BUY = "https://opensea.io/collection/oval-room";
 const MINT_BLOCK = 83602400;
 const ROOMS = [
-  { id:"lobby", name:"Lobby", open:true, blurb:"Look" },
-  { id:"play", name:"Play", open:true, blurb:"Guess the gaze" },
-  { id:"hall", name:"Gold hall", open:true, blurb:"Public" },
-  { id:"plates", name:"Plates", open:false, blurb:"Holders" },
-  { id:"mine", name:"My wall", open:false, blurb:"Holders" },
-  { id:"sitting", name:"Sitting", open:false, blurb:"Holders" }
+  { id:"lobby", name:"Vestibule", open:true },
+  { id:"hall", name:"Gold hall", open:true },
+  { id:"play", name:"Label", open:true },
+  { id:"plates", name:"Plates", open:false },
+  { id:"mine", name:"Your wall", open:false },
+  { id:"sitting", name:"Sitting", open:false }
 ];
 const stage = document.getElementById("stage");
+const feature = document.getElementById("feature");
 const note = document.getElementById("note");
-const doors = document.getElementById("doors");
-const tools = document.getElementById("tools");
-let account = null, holder = false, held = [], count = 0, room = "lobby", cache = new Map(), found = [], loading = false;
+let account = null, holder = false, held = [], count = 0, room = "lobby", cache = new Map(), found = [];
 function trait(nft, key) { const a = (nft.attributes || []).find(x => (x.trait_type || "").toLowerCase() === key.toLowerCase()); return a ? String(a.value) : ""; }
 function hexPad(n) { return Number(n).toString(16).padStart(64, "0"); }
 function validAddress(v) { return /^0x[a-fA-F0-9]{40}$/.test((v || "").trim()); }
-function isPhone() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent); }
 async function rpc(method, params) {
   const res = await fetch(RPC, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify({ jsonrpc:"2.0", id:1, method, params }) });
   const json = await res.json();
@@ -111,19 +101,14 @@ function decodeAbiString(hex) {
   return s;
 }
 async function loadToken(id) {
-  id = Number(id);
   if (cache.has(id)) return cache.get(id);
-  const result = await rpc("eth_call", [{ to:CONTRACT, data:"0xc87b56dd" + hexPad(id) }, "latest"]);
-  const meta = JSON.parse(atob(decodeAbiString(result).split(",")[1]));
-  const nft = { id, ...meta, method:trait(meta,"Method"), year:trait(meta,"Year"), gaze:trait(meta,"Gaze"), hair:trait(meta,"Hair"), epoch:trait(meta,"Epoch") };
+  const meta = JSON.parse(atob(decodeAbiString(await rpc("eth_call", [{ to:CONTRACT, data:"0xc87b56dd" + hexPad(id) }, "latest"])).split(",")[1]));
+  const nft = { id, ...meta, method:trait(meta,"Method"), year:trait(meta,"Year"), gaze:trait(meta,"Gaze"), epoch:trait(meta,"Epoch") };
   cache.set(id, nft);
   return nft;
 }
 async function gather(ids) { const out = []; for (const id of ids) { try { out.push(await loadToken(id)); } catch (e) {} } return out; }
-async function balanceOf(address) {
-  const data = "0x70a08231" + address.toLowerCase().replace("0x", "").padStart(64, "0");
-  return parseInt(await rpc("eth_call", [{ to:CONTRACT, data }, "latest"]), 16) || 0;
-}
+async function balanceOf(address) { return parseInt(await rpc("eth_call", [{ to:CONTRACT, data:"0x70a08231" + address.toLowerCase().replace("0x","").padStart(64,"0") }, "latest"]), 16) || 0; }
 async function heldIds(address) {
   const me = address.toLowerCase();
   const latest = parseInt(await rpc("eth_blockNumber", []), 16);
@@ -133,145 +118,103 @@ async function heldIds(address) {
     const chunk = await rpc("eth_getLogs", [{ address:CONTRACT, topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"], fromBlock:"0x"+b.toString(16), toBlock:"0x"+Math.min(end, b+3999).toString(16) }]);
     if (chunk && chunk.length) logs.push(...chunk);
   }
-  logs.sort((a, c) => (a.blockNumber + a.logIndex).localeCompare(c.blockNumber + c.logIndex));
   const qty = new Map(), own = new Map();
   for (const log of logs) {
-    const from = "0x" + log.topics[1].slice(26);
-    const to = "0x" + log.topics[2].slice(26);
-    const id = parseInt(log.topics[3], 16);
+    const from = "0x" + log.topics[1].slice(26), to = "0x" + log.topics[2].slice(26), id = parseInt(log.topics[3], 16);
     if (from === "0x0000000000000000000000000000000000000000") {
       let n = qty.get(log.transactionHash);
-      if (n == null) {
-        try { n = parseInt((await rpc("eth_getTransactionByHash", [log.transactionHash])).input.slice(10, 74), 16) || 1; } catch { n = 1; }
-        if (!n || n > 100) n = 1;
-        qty.set(log.transactionHash, n);
-      }
+      if (n == null) { try { n = parseInt((await rpc("eth_getTransactionByHash", [log.transactionHash])).input.slice(10, 74), 16) || 1; } catch { n = 1; } if (!n || n > 100) n = 1; qty.set(log.transactionHash, n); }
       for (let i = 0; i < n; i++) own.set(id + i, to);
     } else own.set(id, to);
   }
-  return [...own.entries()].filter(([, who]) => who === me).map(([id]) => id).sort((a, b) => a - b);
+  return [...own.entries()].filter(([, who]) => who === me).map(([id]) => id);
 }
-function card(nft) {
+function frame(nft, plaque) {
   const el = document.createElement("article");
   el.className = "card" + (/plate/i.test(nft.method || "") ? " plate" : "");
-  const chips = [nft.method, nft.epoch, nft.year].filter(Boolean);
-  el.innerHTML = `<div class="frame">${nft.image ? `<img alt="" src="${nft.image}">` : ""}</div><div class="name">${nft.name || ("#" + nft.id)}</div><div class="chips">${chips.map(c => `<span>${c}</span>`).join("")}</div><div class="meta"><a href="https://opensea.io/item/robinhood/${CONTRACT}/${nft.id}" target="_blank" rel="noreferrer">OpenSea</a></div>`;
+  el.innerHTML = `<div class="oval">${nft.image ? `<img alt="" src="${nft.image}">` : ""}</div>` + (plaque ? `<div class="plaque"><b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year, nft.epoch].filter(Boolean).join(" · ")}</div>` : "");
   return el;
 }
-function buyBox(text) { return `<div class="buy"><strong>${text}</strong><p class="note">Mint is over. The sweep is on OpenSea.</p><p><a href="${BUY}" target="_blank" rel="noreferrer">Buy an Oval</a></p></div>`; }
 function paintDoors() {
+  const doors = document.getElementById("doors");
   doors.innerHTML = "";
   ROOMS.forEach(r => {
     const locked = !r.open && !holder;
     const b = document.createElement("button");
-    b.className = "doorbtn" + (room === r.id ? " on" : "");
-    b.innerHTML = `${r.name}<small>${locked ? "Locked" : r.blurb}</small>`;
+    b.className = "arch" + (room === r.id ? " on" : "");
+    b.innerHTML = `${r.name}<small>${locked ? "roped" : "open"}</small>`;
     b.onclick = () => { room = r.id; render(); };
     doors.appendChild(b);
   });
 }
 async function render() {
   paintDoors();
-  document.getElementById("status").textContent = holder ? ("Holder · " + count) : account ? "Visitor" : "Museum lobby";
-  tools.innerHTML = "";
+  document.getElementById("room-name").textContent = (ROOMS.find(r => r.id === room) || ROOMS[0]).name.toUpperCase();
+  feature.innerHTML = "";
+  stage.className = "";
+  stage.innerHTML = "";
   if ((room === "plates" || room === "mine" || room === "sitting") && !holder) {
-    note.textContent = "That door opens for oval holders.";
-    stage.innerHTML = buyBox("This room is for holders.");
+    note.textContent = "A rope across the doorway.";
+    stage.innerHTML = `<div class="rope">Holders only.<br><a href="${BUY}">Acquire an oval</a></div>`;
     return;
   }
-  if (room === "lobby" || room === "hall") {
-    note.textContent = holder ? "The house is open. Your wall is through the door." : "Walk the lobby. An oval opens the rest.";
-    stage.innerHTML = holder ? "" : buyBox("Hold an oval to open your wall.");
-    (await gather(room === "hall" ? [1,2,3,4,8,15,20] : [1,2,3,4])).forEach(n => stage.appendChild(card(n)));
+  if (room === "lobby") {
+    note.textContent = holder ? count + " of yours are in the next rooms." : "One portrait, lit. The other rooms wait.";
+    const nft = await loadToken(1);
+    feature.appendChild(frame(nft, true));
+    return;
+  }
+  if (room === "hall") {
+    note.textContent = "The public wall.";
+    stage.className = "wall";
+    (await gather([1,2,3,4,8,15,20])).forEach(n => stage.appendChild(frame(n, true)));
     return;
   }
   if (room === "play") {
     const nft = await loadToken(4);
-    note.textContent = "Name the gaze.";
-    stage.innerHTML = "";
-    stage.appendChild(card(nft));
+    note.textContent = "Read the sitter.";
+    feature.appendChild(frame(nft, false));
     const box = document.createElement("div");
-    box.className = "buy";
-    box.innerHTML = "<strong>Which way is she looking?</strong>";
+    box.className = "play";
     ["Aside","Down","Direct","Past you"].forEach(g => {
       const b = document.createElement("button");
       b.textContent = g;
-      b.onclick = () => box.insertAdjacentHTML("beforeend", g === nft.gaze ? "<p>Yes.</p>" : "<p class='note'>Not that one.</p>");
+      b.onclick = () => { note.textContent = g === nft.gaze ? "That is the gaze." : "Look again."; };
       box.appendChild(b);
     });
     stage.appendChild(box);
     return;
   }
-  note.textContent = loading ? "Hanging your ovals." : (held.length ? "Your wall." : "Looking for your numbers.");
-  stage.innerHTML = held.length ? "" : (loading ? "<p class='note'>The frames are going up.</p>" : buyBox("None found yet."));
-  (await gather(held.slice(0, 24))).forEach(n => stage.appendChild(card(n)));
+  note.textContent = held.length ? "Your wall." : "The frames are going up.";
+  stage.className = "wall";
+  (await gather(held.slice(0, 18))).forEach(n => stage.appendChild(frame(n, true)));
 }
 async function enter(address) {
   account = address;
   localStorage.setItem("oval.address", address);
-  document.getElementById("connect").textContent = address.slice(0, 6) + "…" + address.slice(-4);
+  document.getElementById("connect").textContent = address.slice(0,6) + "…" + address.slice(-4);
   document.getElementById("sheet").classList.remove("on");
-  try { count = await balanceOf(address); } catch (err) { note.textContent = err.message; count = 0; }
+  try { count = await balanceOf(address); } catch { count = 0; }
   holder = count > 0;
   room = holder ? "mine" : "lobby";
-  loading = holder;
   render();
   if (!holder) return;
   try { held = await heldIds(address); } catch { held = []; }
-  loading = false;
   render();
 }
 async function connectInjected(eth) {
   if (await eth.request({ method:"eth_chainId" }) !== CHAIN) {
     try { await eth.request({ method:"wallet_switchEthereumChain", params:[{ chainId:CHAIN }] }); }
-    catch (err) {
-      if (err.code === 4902) await eth.request({ method:"wallet_addEthereumChain", params:[{ chainId:CHAIN, chainName:"Robinhood Chain", nativeCurrency:{ name:"Ether", symbol:"ETH", decimals:18 }, rpcUrls:[RPC], blockExplorerUrls:["https://robinhoodchain.blockscout.com"] }] });
-      else throw err;
-    }
+    catch (err) { if (err.code === 4902) await eth.request({ method:"wallet_addEthereumChain", params:[{ chainId:CHAIN, chainName:"Robinhood Chain", nativeCurrency:{ name:"Ether", symbol:"ETH", decimals:18 }, rpcUrls:[RPC], blockExplorerUrls:["https://robinhoodchain.blockscout.com"] }] }); else throw err; }
   }
   const accounts = await eth.request({ method:"eth_requestAccounts" });
-  if (!accounts || !accounts[0]) throw new Error("The wallet returned no account.");
   await enter(accounts[0]);
 }
-function discovered() {
-  const list = found.slice();
-  const eth = window.ethereum;
-  if (eth && eth.providers) eth.providers.forEach(p => { if (!list.includes(p)) list.push(p); });
-  else if (eth && !list.includes(eth)) list.push(eth);
-  return list;
-}
-window.addEventListener("eip6963:announceProvider", (event) => {
-  const p = event.detail && event.detail.provider;
-  if (p && !found.includes(p)) { p._ovalName = event.detail.info && event.detail.info.name; found.push(p); }
-});
-window.dispatchEvent(new Event("eip6963:requestProvider"));
-document.getElementById("connect").onclick = () => {
-  document.getElementById("sheet").classList.add("on");
-  const list = discovered();
-  document.getElementById("sheet-title").textContent = isPhone() ? "Open your wallet app" : "Connect on this computer";
-  const box = document.getElementById("found");
-  box.innerHTML = "";
-  list.forEach(p => {
-    const b = document.createElement("button");
-    b.className = "gold";
-    b.textContent = p._ovalName || "Wallet in this browser";
-    b.onclick = () => connectInjected(p).catch(err => document.getElementById("sheet-note").textContent = err.message || "Connection refused.");
-    box.appendChild(b);
-  });
-  document.getElementById("use-here").style.display = list.length ? "none" : "block";
-  document.getElementById("sheet-note").textContent = isPhone() ? "Open ovals.vercel.app inside Rainbow, Coinbase, or Trust. MetaMask flags the jump link. Or paste the address." : "Pick a wallet, or paste an address.";
-};
+function discovered() { const list = found.slice(); const eth = window.ethereum; if (eth && eth.providers) eth.providers.forEach(p => { if (!list.includes(p)) list.push(p); }); else if (eth && !list.includes(eth)) list.push(eth); return list; }
+document.getElementById("connect").onclick = () => { document.getElementById("sheet").classList.add("on"); document.getElementById("sheet-note").textContent = "MetaMask flags the jump link. Rainbow, Coinbase, Trust, or paste the address."; };
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
-document.getElementById("use-here").onclick = async () => {
-  const list = discovered();
-  if (!list.length) { document.getElementById("sheet-note").textContent = "No wallet in this browser. Paste the address."; return; }
-  try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Connection refused."; }
-};
-document.getElementById("use-addr").onclick = async () => {
-  const address = document.getElementById("addr").value.trim();
-  if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full address, starting with 0x."; return; }
-  await enter(address);
-};
+document.getElementById("use-here").onclick = async () => { const list = discovered(); if (!list[0]) { document.getElementById("sheet-note").textContent = "No wallet in this browser."; return; } try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Refused."; } };
+document.getElementById("use-addr").onclick = async () => { const address = document.getElementById("addr").value.trim(); if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full 0x address."; return; } await enter(address); };
 render();
 const saved = localStorage.getItem("oval.address");
 if (saved && validAddress(saved)) enter(saved);
