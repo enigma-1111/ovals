@@ -36,9 +36,8 @@
   .sheet { position:fixed; inset:0; background:rgba(0,0,0,.72); display:none; place-items:end center; z-index:5; }
   .sheet.on { display:grid; }
   .panel { width:min(460px, 100%); background:#171310; border-radius:18px 18px 0 0; padding:18px 18px 28px; }
+  .panel input { width:100%; border-radius:12px; margin:8px 0; }
   .panel button, .panel a { display:block; width:100%; margin:8px 0; text-align:center; text-decoration:none; }
-  .row { display:flex; gap:8px; }
-  .row input { flex:1; min-width:0; }
   @media (max-width:700px) { header { flex-direction:column; align-items:flex-start; } }
 </style>
 </head>
@@ -59,15 +58,14 @@
 </main>
 <div class="sheet" id="sheet">
   <div class="panel">
-    <p>Connect from wherever you are.</p>
-    <button id="use-mm" class="gold">MetaMask, phone or desktop</button>
-    <button id="use-here">Wallet already in this browser</button>
-    <div class="row">
-      <input id="addr" placeholder="Or paste a wallet address" autocapitalize="off" spellcheck="false" />
-      <button id="use-addr">Enter</button>
-    </div>
-    <a href="https://metamask.app.link/dapp/ovals.vercel.app">Open this page in MetaMask</a>
-    <a href="https://rainbow.me/dapp/ovals.vercel.app">Open this page in Rainbow</a>
+    <p>Connect a wallet, or paste the address.</p>
+    <div id="found"></div>
+    <button id="use-here" class="gold">Use the wallet in this browser</button>
+    <input id="addr" placeholder="Paste wallet address, 0x…" autocapitalize="off" autocorrect="off" spellcheck="false" />
+    <button id="use-addr">Enter with this address</button>
+    <a href="https://metamask.app.link/dapp/ovals.vercel.app">Open in MetaMask</a>
+    <a href="https://rainbow.me/dapp/ovals.vercel.app">Open in Rainbow</a>
+    <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Open in Coinbase Wallet</a>
     <button id="close-sheet">Close</button>
     <p class="note" id="sheet-note"></p>
   </div>
@@ -89,7 +87,7 @@ const stage = document.getElementById("stage");
 const note = document.getElementById("note");
 const doors = document.getElementById("doors");
 const tools = document.getElementById("tools");
-let account = null, holder = false, held = [], room = "lobby", cache = new Map(), mm = null;
+let account = null, holder = false, held = [], room = "lobby", cache = new Map(), found = [];
 
 function trait(nft, key) {
   const a = (nft.attributes || []).find(x => (x.trait_type || "").toLowerCase() === key.toLowerCase());
@@ -274,34 +272,43 @@ async function connectInjected(eth) {
   if (!accounts || !accounts[0]) throw new Error("The wallet returned no account.");
   await enter(accounts[0], accounts[0].slice(0, 6) + "…" + accounts[0].slice(-4));
 }
+function discovered() {
+  const list = found.slice();
+  const eth = window.ethereum;
+  if (eth && eth.providers) eth.providers.forEach(p => { if (!list.includes(p)) list.push(p); });
+  else if (eth && !list.includes(eth)) list.push(eth);
+  return list;
+}
+window.addEventListener("eip6963:announceProvider", (event) => {
+  const p = event.detail && event.detail.provider;
+  if (p && !found.includes(p)) found.push(p);
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
 document.getElementById("connect").onclick = () => {
   document.getElementById("sheet").classList.add("on");
-  document.getElementById("sheet-note").textContent = window.ethereum ? "A wallet is in this browser." : "No wallet in this browser. Use MetaMask, or paste an address.";
+  const list = discovered();
+  const box = document.getElementById("found");
+  box.innerHTML = "";
+  list.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.className = "gold";
+    b.textContent = "Connect wallet " + (i + 1);
+    b.onclick = () => connectInjected(p).catch(err => document.getElementById("sheet-note").textContent = err.message || "Connection refused.");
+    box.appendChild(b);
+  });
+  document.getElementById("use-here").style.display = list.length ? "none" : "block";
+  document.getElementById("sheet-note").textContent = list.length ? "A wallet is in this browser." : "No wallet in this browser. Paste an address, or open the page in a wallet app.";
 };
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
 document.getElementById("use-here").onclick = async () => {
-  if (!window.ethereum) { document.getElementById("sheet-note").textContent = "Nothing to connect here. Use MetaMask, or paste an address."; return; }
-  try { await connectInjected(window.ethereum); }
+  const list = discovered();
+  if (!list.length) { document.getElementById("sheet-note").textContent = "Nothing to connect here. Paste an address, or open this page in MetaMask."; return; }
+  try { await connectInjected(list[0]); }
   catch (err) { document.getElementById("sheet-note").textContent = err.message || "Connection refused."; }
-};
-document.getElementById("use-mm").onclick = async () => {
-  document.getElementById("sheet-note").textContent = "Opening MetaMask. On a phone it will switch apps.";
-  try {
-    if (!mm) {
-      const mod = await import("https://esm.sh/@metamask/sdk@0.33.1");
-      const SDK = mod.MetaMaskSDK || mod.default;
-      mm = new SDK({ dappMetadata:{ name:"Oval Room", url:"https://ovals.vercel.app" }, preferDesktop:false, checkInstallationImmediately:false });
-      await mm.init();
-    }
-    const eth = mm.getProvider();
-    await connectInjected(eth);
-  } catch (err) {
-    document.getElementById("sheet-note").textContent = (err && err.message) || "MetaMask did not open. Paste an address, or open this page in the wallet app.";
-  }
 };
 document.getElementById("use-addr").onclick = async () => {
   const address = document.getElementById("addr").value.trim();
-  if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "That is not a wallet address."; return; }
+  if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full address, starting with 0x."; return; }
   await enter(address);
 };
 const saved = localStorage.getItem("oval.address");
