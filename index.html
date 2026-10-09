@@ -7,228 +7,178 @@
 <meta name="description" content="Holder museum for Oval Room on Robinhood Chain." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='11' ry='14' fill='none' stroke='%23c6a15b' stroke-width='2'/%3E%3C/svg%3E" />
 <style>
-  :root {
-    --bg: #100d0b;
-    --panel: #1a1512;
-    --line: #3a2e24;
-    --gold: #c6a15b;
-    --paper: #e7dcc8;
-    --ink: #1c140e;
-    --muted: #a89884;
-    --velvet: #4a1c24;
-  }
+  :root { --bg:#100d0b; --line:#3a2e24; --gold:#c6a15b; --paper:#e7dcc8; --ink:#1c140e; --muted:#a89884; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: radial-gradient(1200px 600px at 50% -10%, #2a2118, var(--bg));
-    color: var(--paper);
-    font: 16px/1.45 Georgia, "Iowan Old Style", serif;
-  }
-  header {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    padding: 22px 6vw 8px;
-  }
-  h1 { font-weight: 500; letter-spacing: 0.18em; font-size: 15px; margin: 0; text-transform: uppercase; }
-  h1 span { color: var(--gold); }
-  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-  button, select {
-    font: 14px/1 Georgia, serif;
-    background: transparent;
-    color: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 8px 14px;
-  }
-  button { cursor: pointer; }
-  button.gold { border-color: var(--gold); color: var(--gold); }
-  main { padding: 8px 6vw 64px; }
-  .tabs, .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
-  .tabs button.on { background: var(--paper); color: var(--ink); }
-  .wall {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 22px;
-  }
-  .card {
-    background: linear-gradient(#241c17, #16110e);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 14px 12px 12px;
-    text-align: center;
-  }
-  .card.plate { background: radial-gradient(circle at 50% 40%, #5a2430, #1a1012 70%); }
-  .frame {
-    width: 100%;
-    aspect-ratio: 4/5;
-    display: grid;
-    place-items: center;
-  }
-  .frame svg, .frame img { width: 86%; height: 92%; object-fit: contain; }
-  .name { margin: 8px 0 2px; font-size: 14px; }
-  .meta { color: var(--muted); font-size: 12px; }
-  .empty, .note { color: var(--muted); max-width: 46rem; }
-  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 700px) { .compare { grid-template-columns: 1fr; } header { align-items: flex-start; flex-direction: column; } }
-  a { color: var(--gold); }
+  body { margin:0; background:radial-gradient(1200px 600px at 50% -10%, #2a2118, var(--bg)); color:var(--paper); font:16px/1.45 Georgia, "Iowan Old Style", serif; }
+  header, main { padding-left:6vw; padding-right:6vw; }
+  header { display:flex; justify-content:space-between; gap:16px; align-items:center; padding-top:22px; }
+  h1 { font-weight:500; letter-spacing:.18em; font-size:15px; margin:0; text-transform:uppercase; }
+  h1 span, a, .gold { color:var(--gold); }
+  .sub, .meta, .note, .empty { color:var(--muted); }
+  .sub { font-size:13px; margin-top:4px; }
+  button, select, input { font:14px/1 Georgia, serif; background:transparent; color:var(--paper); border:1px solid var(--line); border-radius:999px; padding:8px 14px; }
+  button { cursor:pointer; }
+  button.on { background:var(--paper); color:var(--ink); }
+  main { padding-bottom:72px; }
+  .tabs, .filters { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; }
+  .wall { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:22px; }
+  .hall { margin:28px 0 8px; letter-spacing:.16em; text-transform:uppercase; font-size:12px; color:var(--gold); }
+  .card { background:linear-gradient(#241c17, #16110e); border:1px solid var(--line); border-radius:18px; padding:14px 12px 12px; text-align:center; }
+  .card.plate { background:radial-gradient(circle at 50% 40%, #5a2430, #1a1012 70%); }
+  .frame { width:100%; aspect-ratio:4/5; display:grid; place-items:center; }
+  .frame svg, .frame img { width:88%; height:94%; object-fit:contain; }
+  .name { margin:8px 0 2px; font-size:14px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:8px; }
+  .chips span { border:1px solid var(--line); border-radius:999px; padding:3px 8px; font-size:11px; color:var(--muted); }
+  .door { margin:8px 0 0; font-size:14px; }
+  @media (max-width:700px) { header { align-items:flex-start; flex-direction:column; } }
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>Oval <span>Room</span></h1>
-    <div class="sub">Holder museum · Robinhood Chain · 10,000 portraits</div>
+    <div class="sub">Holder museum · Robinhood Chain</div>
   </div>
   <button id="connect" class="gold">Connect wallet</button>
 </header>
 <main>
   <div class="tabs">
     <button class="on" data-view="museum">Museum</button>
+    <button data-view="halls">Halls</button>
+    <button data-view="plates">Plates</button>
     <button data-view="mine">My wall</button>
     <button data-view="sitting">Sitting</button>
-    <button data-view="compare">Compare</button>
   </div>
   <div class="filters">
+    <input id="lookup" inputmode="numeric" placeholder="Token number" />
+    <button id="find">Look up</button>
     <select id="method"><option value="">All methods</option><option>Pencil</option><option>Ink</option><option>Pixel</option><option>Plate</option></select>
-    <select id="era"><option value="">All eras</option><option value="plaster">0–400 plaster</option><option value="gold">401–1400 gold</option><option value="dark">1401–1700 dark</option><option value="paper">1701–1890 paper</option><option value="print">1891–1970 print</option><option value="scan">1971–2026 scan</option></select>
-    <select id="gaze"><option value="">Any gaze</option><option>aside</option><option>down</option><option>direct</option><option>past you</option></select>
-    <select id="sort"><option value="id">Sort by number</option><option value="year">Sort by year</option><option value="method">Sort by method</option></select>
+    <select id="epoch"><option value="">All epochs</option></select>
+    <select id="gaze"><option value="">Any gaze</option><option>Aside</option><option>Down</option><option>Direct</option><option>Past you</option></select>
+    <select id="hair"><option value="">Any hair</option><option>Loose</option><option>Bound</option><option>Veiled</option><option>Cropped</option></select>
+    <label class="meta">Year <input id="year" type="range" min="0" max="2026" value="2026" /></label>
+    <button id="share">Share sitting</button>
   </div>
-  <p class="note" id="note">The museum reads the contract. Connect a wallet to hang only the ovals you hold.</p>
+  <p class="note" id="note">The museum reads the contract. Connect a wallet and the door opens onto your wall.</p>
+  <p class="door" id="door"></p>
   <div id="stage" class="wall"></div>
 </main>
 <script>
 const CONTRACT = "0xb8611673d94f3846c619e2a146b84e793f93f931";
 const CHAIN_ID = "0x1237";
 const RPC = "https://rpc.mainnet.chain.robinhood.com";
-const OPENSEA = "https://opensea.io/collection/oval-room";
 const stage = document.getElementById("stage");
 const note = document.getElementById("note");
+const door = document.getElementById("door");
 let view = "museum";
 let account = null;
 let cache = new Map();
+let held = [];
 
-function eraOf(year) {
-  const y = Number(year);
-  if (Number.isNaN(y)) return "";
-  if (y <= 400) return "plaster";
-  if (y <= 1400) return "gold";
-  if (y <= 1700) return "dark";
-  if (y <= 1890) return "paper";
-  if (y <= 1970) return "print";
-  return "scan";
-}
 function trait(nft, key) {
   const a = (nft.attributes || []).find(x => (x.trait_type || "").toLowerCase() === key.toLowerCase());
   return a ? String(a.value) : "";
 }
-function hexPad(n) { return n.toString(16).padStart(64, "0"); }
+function hexPad(n) { return Number(n).toString(16).padStart(64, "0"); }
 async function rpc(method, params) {
-  const res = await fetch(RPC, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
-  });
+  const res = await fetch(RPC, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify({ jsonrpc:"2.0", id:1, method, params }) });
   const json = await res.json();
   if (json.error) throw new Error(json.error.message || "rpc");
   return json.result;
 }
-function decodeUri(uri) {
-  if (!uri) return null;
-  const raw = uri.startsWith("0x") ? hexToUtf8(uri) : uri;
-  if (raw.startsWith("data:application/json;base64,")) {
-    return JSON.parse(atob(raw.split(",")[1]));
-  }
-  if (raw.startsWith("data:application/json,")) {
-    return JSON.parse(decodeURIComponent(raw.split(",").slice(1).join(",")));
-  }
-  if (raw.startsWith("{")) return JSON.parse(raw);
-  return { name: "Oval", image: raw, attributes: [] };
-}
-function hexToUtf8(hex) {
-  const h = hex.slice(2);
+function decodeAbiString(hex) {
+  const h = hex.replace(/^0x/, "");
+  const len = parseInt(h.slice(64, 128), 16);
+  const bytes = h.slice(128, 128 + len * 2);
   let s = "";
-  for (let i = 0; i < h.length; i += 2) s += String.fromCharCode(parseInt(h.slice(i, i + 2), 16));
-  const start = s.indexOf("data:");
-  return start >= 0 ? s.slice(start).replace(/\0+$/g, "") : s;
+  for (let i = 0; i < bytes.length; i += 2) s += String.fromCharCode(parseInt(bytes.slice(i, i + 2), 16));
+  return s;
+}
+function decodeUri(uri) {
+  const raw = uri.startsWith("0x") ? decodeAbiString(uri) : uri;
+  if (raw.startsWith("data:application/json;base64,")) return JSON.parse(atob(raw.split(",")[1]));
+  if (raw.startsWith("data:application/json,")) return JSON.parse(decodeURIComponent(raw.split(",").slice(1).join(",")));
+  if (raw.startsWith("{")) return JSON.parse(raw);
+  return { name:"Oval", image:raw, attributes:[] };
 }
 async function loadToken(id) {
+  id = Number(id);
   if (cache.has(id)) return cache.get(id);
-  const data = "0xc87b56dd" + hexPad(id);
-  const result = await rpc("eth_call", [{ to: CONTRACT, data }, "latest"]);
+  const result = await rpc("eth_call", [{ to: CONTRACT, data: "0xc87b56dd" + hexPad(id) }, "latest"]);
   const meta = decodeUri(result);
   const nft = { id, ...meta };
-  nft.method = trait(nft, "Method") || trait(nft, "method");
-  nft.year = trait(nft, "Year") || trait(nft, "year");
-  nft.gaze = trait(nft, "Gaze") || trait(nft, "gaze");
-  nft.hair = trait(nft, "Hair") || trait(nft, "hair");
-  nft.jewel = trait(nft, "Jewel") || trait(nft, "jewel");
-  nft.era = eraOf(nft.year);
+  nft.method = trait(nft, "Method");
+  nft.year = trait(nft, "Year");
+  nft.gaze = trait(nft, "Gaze");
+  nft.hair = trait(nft, "Hair");
+  nft.epoch = trait(nft, "Epoch");
+  nft.jewel = trait(nft, "Jewel");
   cache.set(id, nft);
+  rememberEpoch(nft.epoch);
   return nft;
 }
-function fallback(id) {
-  const methods = ["Pencil", "Ink", "Pixel", "Plate"];
-  const method = methods[id % 10 < 7 ? 0 : id % 10 < 9 ? 1 : id % 10 === 9 ? 2 : 3];
-  const year = (id * 37) % 2027;
-  return { id, name: "Oval Room #" + id, method, year, gaze: ["aside", "down", "direct", "past you"][id % 4], hair: ["loose", "bound", "veiled", "cropped"][id % 4], era: eraOf(year), image: "", study: true };
+function rememberEpoch(epoch) {
+  if (!epoch) return;
+  const sel = document.getElementById("epoch");
+  if ([...sel.options].some(o => o.value === epoch)) return;
+  const opt = document.createElement("option");
+  opt.value = epoch; opt.textContent = epoch;
+  sel.appendChild(opt);
 }
 function portrait(nft) {
-  if (nft.image && nft.image.startsWith("data:image")) return `<img alt="" src="${nft.image}" />`;
-  const plate = /plate/i.test(nft.method || "");
-  const ink = /ink/i.test(nft.method || "");
-  const pixel = /pixel/i.test(nft.method || "");
-  const stroke = ink ? 2.2 : 1;
-  const fill = plate ? "#4a1c24" : pixel ? "#6d6458" : "#efe6d6";
-  const line = plate ? "#c6a15b" : "#2a2118";
-  return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="60" cy="76" rx="46" ry="62" fill="${fill}" stroke="${line}" stroke-width="${plate ? 4 : stroke}"/>
-    <ellipse cx="60" cy="62" rx="18" ry="22" fill="none" stroke="${line}" stroke-width="${stroke}"/>
-    <path d="M42 96 Q60 108 78 96" fill="none" stroke="${line}" stroke-width="${stroke}"/>
-    <circle cx="53" cy="60" r="1.4" fill="${line}"/><circle cx="67" cy="60" r="1.4" fill="${line}"/>
-    ${plate ? `<ellipse cx="60" cy="76" rx="50" ry="66" fill="none" stroke="#c6a15b" stroke-width="3"/>` : ""}
-  </svg>`;
+  if (nft.image) return `<img alt="" src="${nft.image}" />`;
+  return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="76" rx="46" ry="62" fill="#efe6d6" stroke="#2a2118"/></svg>`;
 }
 function card(nft) {
   const el = document.createElement("article");
   el.className = "card" + (/plate/i.test(nft.method || "") ? " plate" : "");
+  const chips = [nft.method, nft.epoch, nft.year, nft.gaze, nft.hair, nft.jewel].filter(Boolean);
   el.innerHTML = `<div class="frame">${portrait(nft)}</div>
     <div class="name">${nft.name || ("Oval Room #" + nft.id)}</div>
-    <div class="meta">${nft.method || "—"} · ${nft.year || "—"} · ${nft.gaze || ""}</div>
+    <div class="chips">${chips.map(c => `<span>${c}</span>`).join("")}</div>
     <div class="meta"><a href="https://opensea.io/item/robinhood/${CONTRACT}/${nft.id}" target="_blank" rel="noreferrer">OpenSea</a></div>`;
   return el;
 }
-function applyFilters(list) {
+function filtered(list) {
   const method = document.getElementById("method").value;
-  const era = document.getElementById("era").value;
+  const epoch = document.getElementById("epoch").value;
   const gaze = document.getElementById("gaze").value;
-  const sort = document.getElementById("sort").value;
-  let out = list.filter(n => !method || (n.method || "") === method);
-  out = out.filter(n => !era || n.era === era);
-  out = out.filter(n => !gaze || (n.gaze || "").toLowerCase() === gaze);
-  out.sort((a, b) => sort === "year" ? Number(a.year || 0) - Number(b.year || 0) : sort === "method" ? String(a.method).localeCompare(String(b.method)) : a.id - b.id);
-  return out;
+  const hair = document.getElementById("hair").value;
+  const year = Number(document.getElementById("year").value);
+  return list.filter(n =>
+    (!method || n.method === method) &&
+    (!epoch || n.epoch === epoch) &&
+    (!gaze || n.gaze === gaze) &&
+    (!hair || n.hair === hair) &&
+    (year === 2026 || Number(n.year || 0) <= year)
+  );
 }
-function paint(list) {
-  stage.className = view === "compare" ? "compare" : "wall";
+function paint(list, grouped) {
   stage.innerHTML = "";
-  if (!list.length) {
-    stage.innerHTML = `<p class="empty">Nothing on this wall yet.</p>`;
-    return;
-  }
-  list.forEach(n => stage.appendChild(card(n)));
+  if (!list.length) { stage.innerHTML = `<p class="empty">Nothing on this wall yet.</p>`; return; }
+  if (!grouped) { list.forEach(n => stage.appendChild(card(n))); return; }
+  const halls = new Map();
+  list.forEach(n => {
+    const key = n.epoch || "Unhung";
+    if (!halls.has(key)) halls.set(key, []);
+    halls.get(key).push(n);
+  });
+  halls.forEach((items, name) => {
+    const h = document.createElement("div");
+    h.className = "hall";
+    h.textContent = name;
+    h.style.gridColumn = "1 / -1";
+    stage.appendChild(h);
+    items.forEach(n => stage.appendChild(card(n)));
+  });
 }
-async function showMuseum() {
-  note.textContent = "Public wall. First portraits from the contract. Filters work once traits are read.";
-  const ids = Array.from({ length: 12 }, (_, i) => i + 1);
-  const found = [];
+async function gather(ids) {
+  const out = [];
   for (const id of ids) {
-    try { found.push(await loadToken(id)); }
-    catch { found.push(fallback(id)); }
+    try { out.push(await loadToken(id)); } catch (err) { note.textContent = "The chain paused on #" + id + ". The rest of the wall is still up."; }
   }
-  paint(applyFilters(found));
+  return out;
 }
 async function heldIds(address) {
   const topic = "0x" + address.toLowerCase().replace("0x", "").padStart(64, "0");
@@ -246,36 +196,25 @@ async function heldIds(address) {
   }
   return mine;
 }
-async function showMine() {
-  if (!account) { note.textContent = "Connect a wallet to see your wall."; stage.innerHTML = ""; return; }
-  note.textContent = "Reading your ovals from the chain.";
-  try {
-    const ids = await heldIds(account);
-    const list = [];
-    for (const id of ids.slice(0, 40)) list.push(await loadToken(id));
-    note.textContent = list.length ? `${list.length} on your wall.` : "This wallet holds no ovals yet.";
-    paint(applyFilters(list));
-  } catch (err) {
-    note.textContent = "The chain did not return your wall. Try again in a moment.";
-  }
-}
-async function showSitting() {
-  if (!account) { note.textContent = "Connect to hang a sitting of your set."; stage.innerHTML = ""; return; }
-  note.textContent = "Your sitting. One wall, your ovals only.";
-  await showMine();
-}
-async function showCompare() {
-  note.textContent = "Two portraits, side by side. Museum studies if the chain is quiet.";
-  const pair = [];
-  for (const id of [1, 8]) {
-    try { pair.push(await loadToken(id)); } catch { pair.push(fallback(id)); }
-  }
-  paint(pair);
-}
 async function render() {
-  if (view === "museum") return showMuseum();
-  if (view === "mine" || view === "sitting") return showMine();
-  return showCompare();
+  door.textContent = held.length ? "The door is open. You hold " + held.length + "." : "";
+  if (view === "museum" || view === "halls") {
+    note.textContent = view === "halls" ? "Halls follow the epoch on the token." : "Public wall. First portraits from the contract.";
+    const list = filtered(await gather(Array.from({ length: 18 }, (_, i) => i + 1)));
+    paint(list, view === "halls");
+    return;
+  }
+  if (view === "plates") {
+    note.textContent = "Plate alcove. The 2% room.";
+    const list = filtered(await gather([1,2,3,4,5,6,7,8,9,10,11,12,16,24,32,48,64,96])).filter(n => /plate/i.test(n.method || ""));
+    paint(list);
+    if (!list.length) note.textContent = "No plate in this first stretch of the wall. Look one up by number.";
+    return;
+  }
+  if (!account) { note.textContent = "Connect a wallet. The sitting only hangs what you hold."; stage.innerHTML = ""; return; }
+  if (!held.length) held = await heldIds(account);
+  note.textContent = held.length ? "Your wall." : "This wallet holds no ovals yet.";
+  paint(filtered(await gather(held.slice(0, 48))), view === "sitting");
 }
 document.querySelectorAll(".tabs button").forEach(btn => btn.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("on"));
@@ -283,31 +222,39 @@ document.querySelectorAll(".tabs button").forEach(btn => btn.onclick = () => {
   view = btn.dataset.view;
   render();
 });
-["method", "era", "gaze", "sort"].forEach(id => document.getElementById(id).onchange = render);
+["method","epoch","gaze","hair","year"].forEach(id => document.getElementById(id).onchange = render);
+document.getElementById("find").onclick = async () => {
+  const id = Number(document.getElementById("lookup").value);
+  if (!id) return;
+  note.textContent = "Looking up #" + id + ".";
+  try { paint([await loadToken(id)]); } catch { note.textContent = "No portrait at that number."; }
+};
+document.getElementById("share").onclick = async () => {
+  const ids = held.length ? held.slice(0, 12).join(",") : "1,2,3";
+  const url = location.origin + location.pathname + "?sitting=" + ids;
+  try { await navigator.clipboard.writeText(url); note.textContent = "Sitting link copied."; }
+  catch { note.textContent = url; }
+};
 document.getElementById("connect").onclick = async () => {
   const eth = window.ethereum;
-  if (!eth) { note.textContent = "Open this in a wallet browser, or install one."; return; }
-  try {
-    await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_ID }] });
-  } catch (err) {
-    if (err.code === 4902) {
-      await eth.request({ method: "wallet_addEthereumChain", params: [{
-        chainId: CHAIN_ID,
-        chainName: "Robinhood Chain",
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-        rpcUrls: [RPC],
-        blockExplorerUrls: ["https://robinhoodchain.blockscout.com"]
-      }]});
-    }
+  if (!eth) { note.textContent = "Open this in a wallet browser."; return; }
+  try { await eth.request({ method:"wallet_switchEthereumChain", params:[{ chainId: CHAIN_ID }] }); }
+  catch (err) {
+    if (err.code === 4902) await eth.request({ method:"wallet_addEthereumChain", params:[{ chainId: CHAIN_ID, chainName:"Robinhood Chain", nativeCurrency:{ name:"Ether", symbol:"ETH", decimals:18 }, rpcUrls:[RPC], blockExplorerUrls:["https://robinhoodchain.blockscout.com"] }] });
   }
-  const accounts = await eth.request({ method: "eth_requestAccounts" });
+  const accounts = await eth.request({ method:"eth_requestAccounts" });
   account = accounts[0];
   document.getElementById("connect").textContent = account.slice(0, 6) + "…" + account.slice(-4);
   view = "mine";
   document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.view === "mine"));
   render();
 };
-render();
+const sitting = new URLSearchParams(location.search).get("sitting");
+if (sitting) {
+  view = "sitting";
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.view === "sitting"));
+  gather(sitting.split(",").map(Number).filter(Boolean)).then(list => { note.textContent = "A shared sitting."; paint(list, true); });
+} else render();
 </script>
 </body>
 </html>
