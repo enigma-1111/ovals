@@ -61,7 +61,6 @@
     <p id="sheet-title">Connect</p>
     <div id="found"></div>
     <button id="use-here" class="gold">Use the wallet in this browser</button>
-    <a id="link-mm" href="https://metamask.app.link/dapp/ovals.vercel.app">Open in MetaMask</a>
     <a id="link-rb" href="https://rainbow.me/dapp/ovals.vercel.app">Open in Rainbow</a>
     <a id="link-cb" href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Open in Coinbase Wallet</a>
     <a id="link-tw" href="https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fovals.vercel.app">Open in Trust Wallet</a>
@@ -130,16 +129,45 @@ async function balanceOf(address) {
   const result = await rpc("eth_call", [{ to:CONTRACT, data }, "latest"]);
   return parseInt(result, 16) || 0;
 }
+const MINT_BLOCK = 83602400;
 async function heldIds(address) {
-  const topic = "0x" + address.toLowerCase().replace("0x", "").padStart(64, "0");
-  const logs = await rpc("eth_getLogs", [{ address:CONTRACT, topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef", null, topic], fromBlock:"0x0", toBlock:"latest" }]);
-  const ids = [...new Set(logs.map(l => parseInt(l.topics[3], 16)).filter(Boolean))];
-  const mine = [];
-  for (const id of ids.slice(0, 60)) {
-    const owner = await rpc("eth_call", [{ to:CONTRACT, data:"0x6352211e" + hexPad(id) }, "latest"]);
-    if (owner && owner.toLowerCase().endsWith(address.toLowerCase().replace("0x", ""))) mine.push(id);
+  const me = address.toLowerCase();
+  const topicTo = "0x" + me.replace("0x", "").padStart(64, "0");
+  const latest = parseInt(await rpc("eth_blockNumber", []), 16);
+  const end = Math.min(latest, MINT_BLOCK + 50000);
+  const logs = [];
+  for (let b = MINT_BLOCK; b <= end; b += 2000) {
+    const chunk = await rpc("eth_getLogs", [{
+      address: CONTRACT,
+      topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+      fromBlock: "0x" + b.toString(16),
+      toBlock: "0x" + Math.min(end, b + 1999).toString(16)
+    }]);
+    if (chunk && chunk.length) logs.push(...chunk);
   }
-  return mine;
+  logs.sort((a, c) => a.blockNumber === c.blockNumber ? a.logIndex.localeCompare(c.logIndex) : a.blockNumber.localeCompare(c.blockNumber));
+  const qty = new Map();
+  const own = new Map();
+  for (const log of logs) {
+    const from = "0x" + log.topics[1].slice(26);
+    const to = "0x" + log.topics[2].slice(26);
+    const id = parseInt(log.topics[3], 16);
+    if (from === "0x0000000000000000000000000000000000000000") {
+      let n = qty.get(log.transactionHash);
+      if (n == null) {
+        try {
+          const tx = await rpc("eth_getTransactionByHash", [log.transactionHash]);
+          n = parseInt(tx.input.slice(10, 74), 16) || 1;
+        } catch { n = 1; }
+        if (!n || n > 100) n = 1;
+        qty.set(log.transactionHash, n);
+      }
+      for (let i = 0; i < n; i++) own.set(id + i, to);
+    } else {
+      own.set(id, to);
+    }
+  }
+  return [...own.entries()].filter(([, who]) => who === me).map(([id]) => id).sort((a, b) => a - b);
 }
 function card(nft, dim) {
   const el = document.createElement("article");
@@ -195,12 +223,13 @@ async function enter(address, label) {
   localStorage.setItem("oval.address", address);
   document.getElementById("connect").textContent = label || (address.slice(0, 6) + "…" + address.slice(-4));
   document.getElementById("sheet").classList.remove("on");
-  note.textContent = "Checking this address for an oval.";
+  note.textContent = "Reading " + count + " oval" + (count === 1 ? "" : "s") + " from the mint record.";
   let count = 0;
   try { count = await balanceOf(address); } catch (err) { note.textContent = err.message; }
   holder = count > 0;
   try { held = await heldIds(address); } catch { held = []; }
-  if (holder && !held.length) note.textContent = "You hold " + count + ". The wall list is still catching up. Look one up by number.";
+  if (holder && !held.length) note.textContent = "You hold " + count + ". The wall is still catching up. Look one up by number.";
+  else if (holder) note.textContent = "You hold " + count + ".";
   room = holder ? "mine" : "lobby";
   render();
 }
@@ -314,7 +343,7 @@ document.getElementById("connect").onclick = () => {
   document.getElementById("use-here").style.display = list.length ? "none" : "block";
   document.getElementById("use-here").textContent = phone ? "Try wallet in this browser" : "Use MetaMask on this computer";
   document.getElementById("sheet-note").textContent = phone
-    ? "On a phone, open this page inside MetaMask, Rainbow, Coinbase, or Trust. Paste an address if you only want to look."
+    ? "On a phone, open ovals.vercel.app inside Rainbow, Coinbase, or Trust. MetaMask flags the jump link. Paste an address if you only want the rooms."
     : (list.length ? "Pick the wallet in this browser." : "Install a wallet, or paste an address to look.");
 };
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
@@ -324,7 +353,7 @@ document.getElementById("use-here").onclick = async () => {
     try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Connection refused."; }
     return;
   }
-  if (isPhone()) { location.href = "https://metamask.app.link/dapp/ovals.vercel.app"; return; }
+  if (isPhone()) { document.getElementById("sheet-note").textContent = "Open ovals.vercel.app inside Rainbow, Coinbase, or Trust. MetaMask flags the jump link."; return; }
   document.getElementById("sheet-note").textContent = "Opening MetaMask.";
   try {
     const SDK = await loadMetaMask();
