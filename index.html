@@ -372,7 +372,7 @@ function hoursSince(key) {
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
   document.getElementById("floor-line").innerHTML = `${FLOOR} · <a href="${BUY}">Buy the cheapest</a>`;
-  document.getElementById("token-line").textContent = "100,000 OVAL, split by seat";
+  document.getElementById("token-line").textContent = "100,000 OVAL, split by seat weight";
   const note = document.getElementById("claims-note");
   const list = document.getElementById("claims-list");
   const yieldLine = document.getElementById("yield-line");
@@ -383,18 +383,20 @@ function paintClaims() {
   note.textContent = "Each oval is a seat. Heavier seats take more of the weekly reward.";
   let totalWeight = 0;
   heldAssets.forEach((nft) => { totalWeight += awardFor(nft, heldAssets.length).weight; });
-  yieldLine.textContent = "This week";
+  const totalShare = totalWeight ? WEEK : 0;
+  yieldLine.textContent = totalShare ? `Your share this week · ${totalShare.toLocaleString()} OVAL` : "";
   heldAssets.forEach((nft) => {
     const row = document.createElement("div");
     row.className = "asset";
     const award = awardFor(nft, heldAssets.length);
     const share = totalWeight ? Math.round(WEEK * award.weight / totalWeight) : 0;
-    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")}<br><span class="share">${share.toLocaleString()} OVAL</span>`;
-    const claimed = localStorage.getItem(claimedKey(account, nft.id));
+    const claimed = Number(localStorage.getItem(claimedKey(account, nft.id)) || 0);
+    const recent = claimed && (Date.now() - claimed) < 7 * 24 * 3600000;
+    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")} · weight ${award.weight}<br><span class="share">${share.toLocaleString()} OVAL</span>`;
     const b = document.createElement("button");
-    b.textContent = claimed ? "Claimed" : "Claim";
-    b.disabled = !!claimed;
-    b.onclick = () => { if (!claimed) { localStorage.setItem(claimedKey(account, nft.id), String(Date.now())); paintClaims(); } };
+    b.textContent = recent ? "Claimed" : "Claim";
+    b.disabled = recent;
+    if (!recent) b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), String(Date.now())); paintClaims(); };
     row.appendChild(b);
     list.appendChild(row);
   });
