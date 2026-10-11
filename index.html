@@ -49,19 +49,19 @@
 </div>
 <div class="sheet" id="rules">
   <div class="panel">
-    <p>The rules</p>
-    <p>The oval is the seat. Holding one earns OVAL.</p>
-    <p>Holding OVAL takes the trading fees, in OVAL and WETH.</p>
+    <h2>Rules</h2>
+    <p>An oval is a seat. Holding one earns OVAL.</p>
+    <p>Holding OVAL earns the trading fees, in OVAL and WETH.</p>
     <p>The gold door is for holders of the coin.</p>
-    <p>Pictures carry a 3% royalty.</p>
+    <p>Each picture carries a 3% royalty.</p>
     <button id="close-rules">Step back</button>
   </div>
 </div>
   <div class="sheet" id="oval">
   <div class="panel">
-    <p>OVAL</p>
-    <p>Oval. Paired with WETH.</p>
-    <p>Holders of the coin receive the trading fees, in OVAL and WETH.</p>
+    <h2>OVAL</h2>
+    <p>The coin. Paired with WETH.</p>
+    <p>Hold it, and the trading fees come to you in OVAL and WETH.</p>
     <p id="oval-bal"></p>
     <a id="oval-pools" href="https://pools.fun/">Trade OVAL</a>
     <button id="close-oval">Step back</button>
@@ -69,11 +69,12 @@
 </div>
 <div class="sheet" id="claims">
   <div class="panel">
-    <h2>Claims</h2>
-    <p id="claims-note">Enter to see what your ovals earn.</p>
-    <div class="row"><span>Fees</span><span>OVAL and WETH</span></div>
+    <h2>Claims desk</h2>
+    <p id="claims-note">Sit. Enter. See what your ovals earn this week.</p>
+    <div class="row"><span>Trading fees</span><span>Paid in OVAL and WETH</span></div>
     <div class="row"><span>Floor</span><span id="floor-line"></span></div>
-    <div class="row"><span>Rewards</span><span id="token-line">Once a week</span></div>
+    <div class="row"><span>This week</span><span id="token-line">A share of OVAL</span></div>
+    <button id="claims-enter">Enter</button>
     <p id="yield-line"></p>
     <div id="claims-list"></div>
     <button id="claim-all">Claim all</button>
@@ -315,7 +316,8 @@ function paintClaims() {
   const list = document.getElementById("claims-list");
   const yieldLine = document.getElementById("yield-line");
   list.innerHTML = "";
-  if (!account) { note.textContent = "Enter first. The desk needs an address."; yieldLine.textContent = ""; return; }
+  if (!account) { note.textContent = "Enter to see your seats."; document.getElementById("claims-enter").style.display = "block"; yieldLine.textContent = ""; return; }
+  document.getElementById("claims-enter").style.display = "none";
   if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; yieldLine.textContent = ""; return; }
   note.textContent = "An oval earns OVAL. OVAL holders take 90% of the pool fees.";
   let totalWeight = 0;
@@ -391,6 +393,7 @@ document.getElementById("oval-open").onclick = () => {
   }
 };
 document.getElementById("close-oval").onclick = () => document.getElementById("oval").classList.remove("on");
+document.getElementById("claims-enter").onclick = () => { document.getElementById("claims").classList.remove("on"); document.getElementById("sheet").classList.add("on"); };
 document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
 document.getElementById("claim-all").onclick = () => {
   if (!account) return;
