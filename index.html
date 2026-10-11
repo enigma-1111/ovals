@@ -76,7 +76,10 @@ mesh(new THREE.BoxGeometry(16, 0.25, 64), 0x3a2a1c, 0, 0, -10);
 mesh(new THREE.BoxGeometry(16, 0.12, 64), 0x241c18, 0, 5.1, -10);
 mesh(new THREE.BoxGeometry(0.35, 5, 64), 0x2a221c, -8, 2.5, -10);
 mesh(new THREE.BoxGeometry(0.35, 5, 64), 0x2a221c, 8, 2.5, -10);
-mesh(new THREE.BoxGeometry(16, 5, 0.35), 0x2a221c, 0, 2.5, -42);
+mesh(new THREE.CylinderGeometry(7, 7, 0.25, 32), 0x3a2a1c, 0, 0, 18);
+mesh(new THREE.CylinderGeometry(6.2, 6.2, 4.6, 28, 1, true), 0x2a221c, 0, 2.4, 18);
+mesh(new THREE.CylinderGeometry(8, 8, 0.25, 32), 0x3a2a1c, 0, 0, -36);
+mesh(new THREE.CylinderGeometry(7.2, 7.2, 4.6, 28, 1, true), 0x2a221c, 0, 2.4, -36);
 for (let i = -7; i <= 7; i += 2) mesh(new THREE.BoxGeometry(0.04, 0.04, 64), 0x4a4038, i, 5.02, -10);
 for (let z = 18; z >= -40; z -= 4) mesh(new THREE.BoxGeometry(16, 0.03, 0.04), 0x4a4038, 0, 5.02, z);
 for (let z = 6; z >= -24; z -= 10) {
@@ -108,8 +111,8 @@ plant(-6.6, -14);
 plant(6.6, -26);
 mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 20), 0xcfc6b8, 0, 0.06, -36);
 mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 20), 0x8eb8c8, 0, 0.12, -36);
-const visitors = [];
-function person(x, z, color, lookX) {
+const walkers = [];
+function person(x, z, color, path) {
   const g = new THREE.Group();
   const cloth = new THREE.MeshLambertMaterial({ color });
   const skin = new THREE.MeshLambertMaterial({ color: 0xe2c2a4 });
@@ -123,19 +126,16 @@ function person(x, z, color, lookX) {
   legR.position.x = 0.08;
   g.add(body, head, legL, legR);
   g.position.set(x, 0, z);
-  g.lookAt(lookX, 0, z);
   scene.add(g);
-  visitors.push(g);
+  walkers.push({ mesh: g, path, i: 0, wait: 1 + Math.random() * 2 });
   return g;
 }
-person(-5.4, 11.2, 0x8a3a32, -7.4);
-person(-5.1, 8.4, 0x2f4a62, -7.4);
-person(5.3, 6.6, 0x3d3a34, 7.4);
-const still = person(-4.6, 1.6, 0xc45a4a, -7.4);
-still.position.z = 6.4;
-person(0.4, -4, 0x4a5560, 0);
-person(-5.6, -9, 0x6a5344, -7.4);
-person(5.5, -14.5, 0x2c3a4a, 7.4);
+person(-5.4, 12, 0x8a3a32, [[-5.4,12],[-5.2,6],[-5.4,-2],[-5.2,-12],[-4.8,-22],[0,-34],[-5.4,12]]);
+person(-4.8, 7, 0x2f4a62, [[-4.8,7],[5.2,2],[5.4,-8],[4.8,-18],[0,-34],[-4.8,7]]);
+person(5.2, 4, 0x3d3a34, [[5.2,4],[5.4,-6],[4.6,-16],[5.2,-26],[0,-34],[5.2,4]]);
+person(-4.4, 0, 0xc45a4a, [[-4.4,0],[-5.2,-8],[-4.6,-18],[0,-30],[-4.4,0]]);
+person(0.2, -8, 0x4a5560, [[0.2,-8],[3,-16],[-3,-24],[0,-34],[0.2,-8]]);
+person(5.4, -16, 0x2c3a4a, [[5.4,-16],[4.8,-24],[0,-34],[-5,-20],[5.4,-16]]);
 const frames = [];
 const loader = new THREE.TextureLoader();
 loader.setCrossOrigin("anonymous");
@@ -279,7 +279,17 @@ function tick() {
   camera.rotation.x = pitch;
   renderer.render(scene, camera);
   const t = clock.elapsedTime;
-  visitors.forEach((v, i) => { v.position.y = Math.sin(t * 0.6 + i) * 0.015; });
+  walkers.forEach((w) => {
+    if (w.wait > 0) { w.wait -= dt; return; }
+    const p = w.path[w.i];
+    const dx = p[0] - w.mesh.position.x;
+    const dz = p[1] - w.mesh.position.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.2) { w.i = (w.i + 1) % w.path.length; w.wait = 1.6 + Math.random() * 2.4; return; }
+    w.mesh.position.x += dx / dist * 1.1 * dt;
+    w.mesh.position.z += dz / dist * 1.1 * dt;
+    w.mesh.lookAt(w.mesh.position.x + dx, 0, w.mesh.position.z + dz);
+  });
   requestAnimationFrame(tick);
 }
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
