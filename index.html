@@ -118,7 +118,8 @@ mesh(new THREE.BoxGeometry(0.4, 9, 70), 0x8a2434, 8.8, 4.5, -8);
 mesh(new THREE.BoxGeometry(18, 1.1, 70), 0x3a1418, -0, 0.55, -8);
 mesh(new THREE.BoxGeometry(17.2, 0.12, 70), 0xd7b56a, 0, 8.7, -8);
 mesh(new THREE.BoxGeometry(12, 0.08, 48), 0xdff6ff, 0, 9.05, -8);
-mesh(new THREE.BoxGeometry(18, 9, 0.4), 0x8a2434, 0, 4.5, -42);
+mesh(new THREE.BoxGeometry(2.2, 3.2, 0.2), 0x1a1014, 0, 1.6, -41.6);
+mesh(new THREE.BoxGeometry(1.4, 2.4, 0.08), 0xd7b56a, 0, 1.5, -41.4);
 for (let z = 14; z >= -30; z -= 6) mesh(new THREE.BoxGeometry(0.12, 9, 0.12), 0xd7b56a, -8.5, 4.5, z);
 for (let z = 11; z >= -33; z -= 6) mesh(new THREE.BoxGeometry(0.12, 9, 0.12), 0xd7b56a, 8.5, 4.5, z);
 for (let z = 8; z >= -28; z -= 12) {
@@ -152,10 +153,8 @@ mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 20), 0xcfc6b8, 0, 0.06, -36);
 mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 20), 0x8eb8c8, 0, 0.12, -36);
 const walkers = [];
 function spot() {
-  const z = 16 - Math.random() * 50;
-  const x = (Math.random() - 0.5) * 9;
-  const face = x < 0 ? -7.4 : 7.4;
-  return [x, z, face];
+  const wall = Math.random() < 0.5 ? -1 : 1;
+  return [wall * (4.6 + Math.random() * 1.4), 14 - Math.random() * 46, wall * 7.4];
 }
 function person(x, z, color) {
   const g = new THREE.Group();
@@ -238,7 +237,7 @@ async function fill(ids, side, start) {
     try { hang(await loadToken(ids[i]), side, start - i * 5.2); } catch (e) {}
   }
 }
-fill([1,2,3,4,5,6,7,8], -7.4, 12).then(() => status.textContent = "They are looking");
+fill([1,2,3,4,5,6,7,8], -7.4, 12).then(() => status.textContent = "The portraits are up");
 fill([9,10,11,12,13,14,15,16], 7.4, 12);
 const keys = {};
 addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
@@ -268,7 +267,7 @@ renderer.domElement.addEventListener("click", (e) => {
   if (!hit) { box.style.display = "none"; return; }
   const nft = frames.find(f => f.mesh === hit.object).nft;
   box.style.display = "block";
-  box.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year].filter(Boolean).join(" · ")}`;
+  box.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")}<br>This seat earns OVAL.`;
 });
 function awardFor(nft, heldCount) {
   const method = (nft.method || "").toLowerCase();
@@ -417,18 +416,14 @@ function tick() {
   walkers.forEach((w) => {
     if (w.wait > 0) {
       w.wait -= dt;
-      w.mesh.lookAt(w.face, 1.4, w.mesh.position.z);
+      w.mesh.lookAt(w.face, 1.5, w.mesh.position.z);
+      if (w.wait <= 0) { const s = spot(); w.tx = s[0]; w.tz = s[1]; w.face = s[2]; }
       return;
     }
     const dx = w.tx - w.mesh.position.x;
     const dz = w.tz - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.3) {
-      const s = spot();
-      w.tx = s[0]; w.tz = s[1]; w.face = s[2];
-      w.wait = 3 + Math.random() * 6;
-      return;
-    }
+    if (dist < 0.35) { w.wait = 6 + Math.random() * 8; return; }
     const step = (0.45 + Math.random() * 0.35) * dt;
     w.mesh.position.x += dx / dist * step;
     w.mesh.position.z += dz / dist * step;
@@ -438,7 +433,7 @@ function tick() {
 }
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 tick();
-status.textContent = "They are looking";
+status.textContent = "Walk. Tap a portrait.";
 </script>
 </body>
 </html>
