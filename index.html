@@ -42,7 +42,7 @@
 <div id="status">Opening the hall</div>
 <div class="bar">
   <button id="connect">Enter</button>
-  <button id="rules-open">Rules</button>
+  <button id="rules-open">Proof Rules</button>
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
   <button id="claims-open">Claims</button>
@@ -54,7 +54,7 @@
 </div>
 <div class="sheet" id="rules">
   <div class="panel">
-    <h2>Rules</h2>
+    <h2>Proof Rules</h2>
     <p>An oval is a seat. Holding one earns OVAL.</p>
     <p>Holding OVAL earns the trading fees, in OVAL and WETH.</p>
     <p>The gold door is for holders of the coin.</p>
@@ -183,8 +183,21 @@ for (let z = 6; z >= -26; z -= 8) {
   bench(5.2, z, 1);
 }
 // Door
-mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
-mesh(new THREE.BoxGeometry(1.6, 2.6, 0.06), 0xd7b56a, 0, 1.6, -41.35);
+const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
+const doorLeaf = mesh(new THREE.BoxGeometry(1.6, 2.6, 0.06), 0xd7b56a, 0, 1.6, -41.35);
+function updateDoor() {
+  const open = ovalBalance > 0 && OVAL_TOKEN !== "0x1234";
+  doorLeaf.visible = !open;
+  doorLeaf.material.color.set(open ? 0x3a8a4a : 0xd7b56a);
+  if (open) {
+    doorLeaf.position.x = 1.2;
+    doorLeaf.rotation.y = Math.PI / 3;
+  } else {
+    doorLeaf.position.x = 0;
+    doorLeaf.rotation.y = 0;
+  }
+}
+updateDoor();
 function statue(x, z) {
   const stone = 0xd8d0c4;
   mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.16, 16), 0xb7a48a, x, 0.1, z);
@@ -422,20 +435,38 @@ async function heldIds(address) {
   }
   return [...own.entries()].filter(([, who]) => who === me).map(([id]) => id);
 }
-let account = null, heldAssets = [];
+function validAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test((a || "").trim()); }
+let account = null, heldAssets = [], ovalBalance = 0;
 async function enter(address) {
   account = address;
   localStorage.setItem("oval.address", address);
   document.getElementById("connect").textContent = address.slice(0,6) + "…" + address.slice(-4);
   document.getElementById("sheet").classList.remove("on");
   const count = await balanceOf(address).catch(() => 0);
-  status.textContent = count ? ("Holder · " + count) : "Visitor";
-  if (!count) { heldAssets = []; paintClaims(); document.getElementById("plaque").style.display = "block"; document.getElementById("plaque").innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; return; }
-  const held = await heldIds(address).catch(() => []);
-  heldAssets = [];
-  for (const id of held.slice(0, 24)) { try { heldAssets.push(await loadToken(id)); } catch (e) {} }
-  paintClaims();
-  fill(held.slice(0, 8), 7.4, -10);
+  ovalBalance = 0;
+  if (OVAL_TOKEN !== "0x1234") {
+    try {
+      const raw = await rpc("eth_call", [{ to: OVAL_TOKEN, data: "0x70a08231" + address.toLowerCase().replace("0x","").padStart(64,"0") }, "latest"]);
+      ovalBalance = parseInt(raw, 16) / 1e18;
+    } catch (e) { ovalBalance = 0; }
+  }
+  let label = "Visitor";
+  if (count) label = "Oval holder · " + count;
+  if (ovalBalance > 0) label = (count ? "Holder · " + count + " · " : "") + ovalBalance.toFixed(2) + " OVAL";
+  status.textContent = label;
+  if (!count) {
+    heldAssets = [];
+    paintClaims();
+    document.getElementById("plaque").style.display = "block";
+    document.getElementById("plaque").innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`;
+  } else {
+    const held = await heldIds(address).catch(() => []);
+    heldAssets = [];
+    for (const id of held.slice(0, 24)) { try { heldAssets.push(await loadToken(id)); } catch (e) {} }
+    paintClaims();
+    fill(held.slice(0, 8), 7.4, -10);
+  }
+  updateDoor();
 }
 function discovered() {
   const eth = window.ethereum;
@@ -491,7 +522,7 @@ function tick() {
     camera.position.addScaledVector(dir, 4.2 * dt);
   }
   camera.position.x = Math.max(-6, Math.min(6, camera.position.x));
-  camera.position.z = Math.max(-39, Math.min(20, camera.position.z));
+  camera.position.z = Math.max(ovalBalance > 0 && OVAL_TOKEN !== "0x1234" ? -48 : -39, Math.min(20, camera.position.z));
   camera.position.y = 1.6;
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
