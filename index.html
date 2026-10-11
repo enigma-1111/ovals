@@ -356,6 +356,7 @@ async function connectInjected(eth) {
   await enter((await eth.request({ method:"eth_requestAccounts" }))[0]);
 }
 document.getElementById("buy-floor").onclick = () => window.open(BUY, "_blank");
+document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
 document.getElementById("claim-all").onclick = () => {
   if (!account) return;
   heldAssets.forEach((nft) => localStorage.setItem(claimedKey(account, nft.id), String(Date.now())));
