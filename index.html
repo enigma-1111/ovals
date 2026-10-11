@@ -43,8 +43,8 @@
 <div class="sheet" id="claims">
   <div class="panel">
     <p>The merge</p>
-    <p id="claims-note">The oval is the seat. The coin is the yield.</p>
-    <p id="split-line">70% holders · 20% you · 10% floor buy</p>
+    <p id="claims-note">Hold an oval to earn OVAL. Hold OVAL to earn the pool.</p>
+    <p id="split-line">pools.fun · WETH · 90% of fees to OVAL holders, in OVAL and WETH. Permanent.</p>
     <p id="floor-line"></p>
     <p id="token-line"></p>
     <p id="yield-line"></p>
@@ -74,6 +74,7 @@ const RPC = "https://rpc.mainnet.chain.robinhood.com";
 const BUY = "https://opensea.io/collection/oval-room?search%5BsortBy%5D=PRICE&search%5BsortAscending%5D=true";
 const FLOOR = "0.06 USDG";
 const OVAL_TOKEN = "0x1234";
+const POOLS = "https://pools.fun/";
 const MINT_BLOCK = 83602400;
 const status = document.getElementById("status");
 if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
@@ -283,14 +284,14 @@ function hoursSince(key) {
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
   document.getElementById("floor-line").innerHTML = `Floor ${FLOOR}. <a href="${BUY}">Buy the cheapest oval</a>`;
-  document.getElementById("token-line").textContent = "Oval coin " + OVAL_TOKEN + " — placement, not live.";
+  document.getElementById("token-line").innerHTML = `OVAL ${OVAL_TOKEN} — placement. <a href="${POOLS}">Launch on pools.fun</a>`;
   const note = document.getElementById("claims-note");
   const list = document.getElementById("claims-list");
   const yieldLine = document.getElementById("yield-line");
   list.innerHTML = "";
   if (!account) { note.textContent = "Enter first. The desk needs an address."; yieldLine.textContent = ""; return; }
   if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; yieldLine.textContent = ""; return; }
-  note.textContent = "Hold the oval. It earns the coin. You keep the 3% royalty.";
+  note.textContent = "An oval earns OVAL. OVAL holders take 90% of the pool fees.";
   let totalRate = 0, owed = 0;
   heldAssets.forEach((nft) => {
     const award = awardFor(nft, heldAssets.length);
