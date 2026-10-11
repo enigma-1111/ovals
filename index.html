@@ -42,7 +42,7 @@
 <div id="status">Opening the hall</div>
 <div class="bar">
   <button id="connect">Enter</button>
-  <button id="rules-open">Proof Rules</button>
+  <button id="rules-open">Rules</button>
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
   <button id="claims-open">Claims</button>
@@ -54,7 +54,7 @@
 </div>
 <div class="sheet" id="rules">
   <div class="panel">
-    <h2>Proof Rules</h2>
+    <h2>Rules</h2>
     <p>An oval is a seat. Holding one earns OVAL.</p>
     <p>Holding OVAL earns the trading fees, in OVAL and WETH.</p>
     <p>The gold door is for holders of the coin.</p>
@@ -182,6 +182,7 @@ for (let z = 6; z >= -26; z -= 8) {
   bench(-5.2, z, -1);
   bench(5.2, z, 1);
 }
+let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
 const doorLeaf = mesh(new THREE.BoxGeometry(1.6, 2.6, 0.06), 0xd7b56a, 0, 1.6, -41.35);
@@ -445,7 +446,6 @@ async function heldIds(address) {
   return [...own.entries()].filter(([, who]) => who === me).map(([id]) => id);
 }
 function validAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test((a || "").trim()); }
-let account = null, heldAssets = [], ovalBalance = 0;
 async function enter(address) {
   account = address;
   localStorage.setItem("oval.address", address);
