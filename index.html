@@ -11,7 +11,13 @@
   canvas { display:block; width:100%; height:100%; }
   h1 { position:fixed; top:14px; left:16px; margin:0; letter-spacing:.28em; font-size:11px; color:#c9a15a; z-index:2; }
   #connect, .pad button, .panel button, .panel input, .panel a { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(10,8,7,.7); border:1px solid rgba(201,161,90,.5); border-radius:999px; padding:8px 12px; }
-  #connect { position:fixed; top:10px; right:12px; z-index:3; }
+  #claims-open { position:fixed; top:10px; right:92px; z-index:3; }
+  #claims { position:fixed; inset:0; background:rgba(20,8,10,.82); display:none; place-items:end center; z-index:7; }
+  #claims.on { display:grid; }
+  #claims .panel { max-height:78vh; overflow:auto; }
+  .asset { border-top:1px solid rgba(215,181,106,.35); padding:10px 0; }
+  .asset b { display:block; }
+  .asset button { width:auto; margin-top:6px; }
   #status { position:fixed; top:42px; left:16px; color:#b7a48d; font-size:12px; z-index:2; }
   #plaque { position:fixed; left:50%; bottom:108px; transform:translateX(-50%); min-width:160px; text-align:center; background:#d9c7a2; color:#2b2116; padding:8px 12px; display:none; z-index:3; }
   #plaque b { display:block; }
@@ -26,13 +32,20 @@
 <body>
 <h1>OVAL ROOM</h1>
 <div id="status">Opening the hall</div>
-<button id="connect">Enter</button>
+<button id="claims-open">Claims</button>
 <div id="plaque"></div>
 <div class="pad">
   <span></span><button id="up">↑</button><span></span>
   <button id="left">←</button><button id="down">↓</button><button id="right">→</button>
 </div>
-<div class="sheet" id="sheet">
+<div class="sheet" id="claims">
+  <div class="panel">
+    <p>Claims desk</p>
+    <p id="claims-note">An oval is the asset. Holding it awards you.</p>
+    <div id="claims-list"></div>
+    <button id="close-claims">Step back</button>
+  </div>
+</div>
   <div class="panel">
     <p>The desk</p>
     <button id="use-here">Wallet in this browser</button>
@@ -178,7 +191,7 @@ function decodeAbiString(hex) {
 async function loadToken(id) {
   const meta = JSON.parse(atob(decodeAbiString(await rpc("eth_call", [{ to:CONTRACT, data:"0xc87b56dd" + hexPad(id) }, "latest"])).split(",")[1]));
   const attr = (k) => { const a = (meta.attributes || []).find(x => (x.trait_type || "").toLowerCase() === k); return a ? String(a.value) : ""; };
-  return { id, name: meta.name, image: meta.image, method: attr("method"), year: attr("year") };
+  return { id, name: meta.name, image: meta.image, method: attr("method"), year: attr("year"), gaze: attr("gaze"), epoch: attr("epoch") };
 }
 function hang(nft, x, z) {
   const g = new THREE.Group();
@@ -234,7 +247,36 @@ renderer.domElement.addEventListener("click", (e) => {
   box.style.display = "block";
   box.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year].filter(Boolean).join(" · ")}`;
 });
-function validAddress(v) { return /^0x[a-fA-F0-9]{40}$/.test((v || "").trim()); }
+function awardFor(nft) {
+  const method = (nft.method || "").toLowerCase();
+  if (/plate/.test(method)) return "Plate key. The private red room.";
+  if (/direct/.test((nft.gaze || "").toLowerCase())) return "The look. A seat in front of the picture.";
+  const year = parseInt(nft.year, 10);
+  if (!isNaN(year) && year < 500) return "Founding sitter. An early year.";
+  if ((nft.epoch || "").toLowerCase().includes("modern")) return "Modern pass.";
+  return "Museum pass. Your wall is open.";
+}
+function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
+function paintClaims() {
+  const list = document.getElementById("claims-list");
+  const note = document.getElementById("claims-note");
+  list.innerHTML = "";
+  if (!account) { note.textContent = "Enter first. The desk needs an address."; return; }
+  if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; return; }
+  note.textContent = heldAssets.length + " assets. Claim what each one awards.";
+  heldAssets.forEach((nft) => {
+    const row = document.createElement("div");
+    row.className = "asset";
+    const done = localStorage.getItem(claimedKey(account, nft.id));
+    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year, nft.epoch].filter(Boolean).join(" · ")}<br>${awardFor(nft)}`;
+    const b = document.createElement("button");
+    b.textContent = done ? "Claimed" : "Claim award";
+    b.disabled = !!done;
+    b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), awardFor(nft)); paintClaims(); };
+    row.appendChild(b);
+    list.appendChild(row);
+  });
+}
 async function balanceOf(address) { return parseInt(await rpc("eth_call", [{ to:CONTRACT, data:"0x70a08231" + address.toLowerCase().replace("0x","").padStart(64,"0") }, "latest"]), 16) || 0; }
 async function heldIds(address) {
   const me = address.toLowerCase();
@@ -256,14 +298,19 @@ async function heldIds(address) {
   }
   return [...own.entries()].filter(([, who]) => who === me).map(([id]) => id);
 }
+let account = null, heldAssets = [];
 async function enter(address) {
+  account = address;
   localStorage.setItem("oval.address", address);
   document.getElementById("connect").textContent = address.slice(0,6) + "…" + address.slice(-4);
   document.getElementById("sheet").classList.remove("on");
   const count = await balanceOf(address).catch(() => 0);
   status.textContent = count ? ("Holder · " + count) : "Visitor";
-  if (!count) { document.getElementById("plaque").style.display = "block"; document.getElementById("plaque").innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; return; }
+  if (!count) { heldAssets = []; paintClaims(); document.getElementById("plaque").style.display = "block"; document.getElementById("plaque").innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; return; }
   const held = await heldIds(address).catch(() => []);
+  heldAssets = [];
+  for (const id of held.slice(0, 24)) { try { heldAssets.push(await loadToken(id)); } catch (e) {} }
+  paintClaims();
   fill(held.slice(0, 8), 7.4, -10);
 }
 function discovered() { const eth = window.ethereum; return eth && eth.providers ? eth.providers : eth ? [eth] : []; }
@@ -274,6 +321,8 @@ async function connectInjected(eth) {
   }
   await enter((await eth.request({ method:"eth_requestAccounts" }))[0]);
 }
+document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
+document.getElementById("close-claims").onclick = () => document.getElementById("claims").classList.remove("on");
 document.getElementById("connect").onclick = () => document.getElementById("sheet").classList.add("on");
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
 document.getElementById("use-here").onclick = async () => { const list = discovered(); if (!list[0]) { document.getElementById("sheet-note").textContent = "No wallet in this browser. Paste the address."; return; } try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Refused."; } };
