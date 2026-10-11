@@ -253,15 +253,22 @@ renderer.domElement.addEventListener("click", (e) => {
   box.style.display = "block";
   box.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year].filter(Boolean).join(" · ")}`;
 });
-function awardFor(nft) {
+function awardFor(nft, heldCount) {
   const method = (nft.method || "").toLowerCase();
-  let coin = 10;
-  let pass = "Museum pass";
-  if (/plate/.test(method)) { coin = 100; pass = "Plate key"; }
-  else if (/direct/.test((nft.gaze || "").toLowerCase())) { coin = 40; pass = "The look"; }
-  else if (!isNaN(parseInt(nft.year, 10)) && parseInt(nft.year, 10) < 500) { coin = 60; pass = "Founding sitter"; }
-  else if ((nft.epoch || "").toLowerCase().includes("modern")) { coin = 25; pass = "Modern pass"; }
-  return { coin, pass, text: pass + " · " + coin + " oval" };
+  const gaze = (nft.gaze || "").toLowerCase();
+  const year = parseInt(nft.year, 10);
+  let coin = 8;
+  const bits = ["base 8"];
+  if (/plate/.test(method)) { coin += 50; bits.push("plate +50"); }
+  else if (/ink|etch|oil/.test(method)) { coin += 18; bits.push("method +18"); }
+  else { coin += 6; bits.push("method +6"); }
+  if (/direct/.test(gaze)) { coin += 16; bits.push("direct +16"); }
+  else if (/aside|down/.test(gaze)) { coin += 6; bits.push("gaze +6"); }
+  if (!isNaN(year) && year < 500) { coin += 24; bits.push("early +24"); }
+  else if (!isNaN(year) && year < 1600) { coin += 12; bits.push("old +12"); }
+  else if (!isNaN(year) && year >= 2000) { coin += 4; bits.push("now +4"); }
+  if (heldCount >= 5) { coin += 10; bits.push("five +10"); }
+  return { coin, text: coin + " oval · " + bits.join(", ") };
 }
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
@@ -276,7 +283,7 @@ function paintClaims() {
     const row = document.createElement("div");
     row.className = "asset";
     const done = localStorage.getItem(claimedKey(account, nft.id));
-    const award = awardFor(nft);
+    const award = awardFor(nft, heldAssets.length);
     row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year, nft.epoch].filter(Boolean).join(" · ")}<br>${award.text}`;
     const b = document.createElement("button");
     b.textContent = done ? "Claimed" : "Claim award";
