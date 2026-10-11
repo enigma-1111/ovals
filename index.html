@@ -11,6 +11,7 @@
   canvas { display:block; width:100%; height:100%; }
   h1 { position:fixed; top:14px; left:16px; margin:0; letter-spacing:.28em; font-size:11px; color:#c9a15a; z-index:2; }
   #connect, .pad button, .panel button, .panel input, .panel a { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(10,8,7,.7); border:1px solid rgba(201,161,90,.5); border-radius:999px; padding:8px 12px; }
+  #buy-floor { position:fixed; top:10px; right:168px; z-index:3; }
   #claims-open { position:fixed; top:10px; right:92px; z-index:3; }
   #claims { position:fixed; inset:0; background:rgba(20,8,10,.82); display:none; place-items:end center; z-index:7; }
   #claims.on { display:grid; }
@@ -32,6 +33,7 @@
 <body>
 <h1>OVAL ROOM</h1>
 <div id="status">Opening the hall</div>
+<button id="buy-floor">Buy floor</button>
 <button id="claims-open">Claims</button>
 <div id="plaque"></div>
 <div class="pad">
@@ -42,6 +44,8 @@
   <div class="panel">
     <p>Claims desk</p>
     <p id="claims-note">An oval is the asset. Holding it awards you.</p>
+    <p id="floor-line"></p>
+    <p id="token-line"></p>
     <div id="claims-list"></div>
     <button id="close-claims">Step back</button>
   </div>
@@ -63,7 +67,9 @@
 const CONTRACT = "0xb8611673d94f3846c619e2a146b84e793f93f931";
 const CHAIN = "0x1237";
 const RPC = "https://rpc.mainnet.chain.robinhood.com";
-const BUY = "https://opensea.io/collection/oval-room";
+const BUY = "https://opensea.io/collection/oval-room?search%5BsortBy%5D=PRICE&search%5BsortAscending%5D=true";
+const FLOOR = "0.06 USDG";
+const OVAL_TOKEN = "0x1234";
 const MINT_BLOCK = 83602400;
 const status = document.getElementById("status");
 if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
@@ -258,7 +264,8 @@ function awardFor(nft) {
 }
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
-  const list = document.getElementById("claims-list");
+  document.getElementById("floor-line").innerHTML = `Floor ${FLOOR}. <a href="${BUY}">Buy the cheapest oval</a>`;
+  document.getElementById("token-line").textContent = "Oval coin " + OVAL_TOKEN + " — placement, not live.";
   const note = document.getElementById("claims-note");
   list.innerHTML = "";
   if (!account) { note.textContent = "Enter first. The desk needs an address."; return; }
@@ -321,6 +328,7 @@ async function connectInjected(eth) {
   }
   await enter((await eth.request({ method:"eth_requestAccounts" }))[0]);
 }
+document.getElementById("buy-floor").onclick = () => window.open(BUY, "_blank");
 document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
 document.getElementById("close-claims").onclick = () => document.getElementById("claims").classList.remove("on");
 document.getElementById("connect").onclick = () => document.getElementById("sheet").classList.add("on");
