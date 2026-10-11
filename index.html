@@ -11,7 +11,7 @@
   canvas { display:block; width:100%; height:100%; }
   h1 { position:fixed; top:14px; left:16px; margin:0; letter-spacing:.28em; font-size:11px; color:#c9a15a; z-index:2; }
   #connect, .pad button, .panel button, .panel input, .panel a { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(10,8,7,.7); border:1px solid rgba(201,161,90,.5); border-radius:999px; padding:8px 12px; }
-  #oval-open { position:fixed; top:10px; right:248px; z-index:3; }
+  #rules-open { position:fixed; top:10px; right:320px; z-index:3; }
   #claims-open { position:fixed; top:10px; right:92px; z-index:3; }
   #claims { position:fixed; inset:0; background:rgba(20,8,10,.82); display:none; place-items:end center; z-index:7; }
   #claims.on { display:grid; }
@@ -33,6 +33,7 @@
 <body>
 <h1>OVAL ROOM</h1>
 <div id="status">Opening the hall</div>
+<button id="rules-open">Rules</button>
 <button id="oval-open">OVAL</button>
 <button id="buy-floor">Buy floor</button>
 <button id="claims-open">Claims</button>
@@ -41,7 +42,16 @@
   <span></span><button id="up">↑</button><span></span>
   <button id="left">←</button><button id="down">↓</button><button id="right">→</button>
 </div>
-<div class="sheet" id="oval">
+<div class="sheet" id="rules">
+  <div class="panel">
+    <p>The rules</p>
+    <p>The oval is the seat. It earns OVAL.</p>
+    <p>OVAL is the coin. Holding it takes 90% of the pool fees, in OVAL and WETH.</p>
+    <p>The gold door opens for the coin. It is shut until the contract is live.</p>
+    <p>You keep the 3% royalty on the pictures.</p>
+    <button id="close-rules">Step back</button>
+  </div>
+</div>
   <div class="panel">
     <p>OVAL</p>
     <p>Name Oval. Ticker OVAL. Pair WETH.</p>
@@ -368,6 +378,8 @@ async function connectInjected(eth) {
   await enter((await eth.request({ method:"eth_requestAccounts" }))[0]);
 }
 document.getElementById("buy-floor").onclick = () => window.open(BUY, "_blank");
+document.getElementById("rules-open").onclick = () => document.getElementById("rules").classList.add("on");
+document.getElementById("close-rules").onclick = () => document.getElementById("rules").classList.remove("on");
 document.getElementById("oval-open").onclick = () => {
   document.getElementById("oval").classList.add("on");
   document.getElementById("oval-addr").textContent = "Contract " + OVAL_TOKEN + (OVAL_TOKEN === "0x1234" ? " — placement, not live." : "");
