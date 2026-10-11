@@ -7,14 +7,14 @@
 <meta name="description" content="Walk the Oval Room." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='11' ry='14' fill='none' stroke='%23c6a15b' stroke-width='2'/%3E%3C/svg%3E" />
 <style>
-  html, body { margin:0; height:100%; background:#14110f; color:#efe4d2; font:15px/1.45 Palatino, Georgia, serif; overflow:hidden; touch-action:none; }
-  canvas { display:block; width:100%; height:100%; }
-  h1 { position:fixed; top:14px; left:18px; margin:0; letter-spacing:.32em; font-size:12px; font-weight:normal; color:#e4c98a; z-index:2; }
-  #connect, .pad button, .panel button, .panel input, .panel a, .bar button { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(12,9,8,.72); border:1px solid rgba(228,201,138,.45); border-radius:999px; padding:9px 14px; }
-  .bar { position:fixed; top:calc(40px + env(safe-area-inset-top)); left:12px; right:12px; z-index:3; display:flex; gap:8px; flex-wrap:wrap; }
+  html, body { margin:0; height:100%; background:#14110f; color:#efe4d2; font:15px/1.45 Palatino, Georgia, serif; overflow:hidden; }
+  canvas { display:block; width:100%; height:100%; touch-action:none; }
+  h1 { position:fixed; top:calc(10px + env(safe-area-inset-top)); left:18px; margin:0; letter-spacing:.32em; font-size:12px; font-weight:normal; color:#e4c98a; z-index:5; pointer-events:none; }
+  #connect, .pad button, .panel button, .panel input, .panel a, .bar button { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(12,9,8,.72); border:1px solid rgba(228,201,138,.45); border-radius:999px; padding:9px 14px; touch-action:manipulation; }
+  .bar { position:fixed; top:calc(42px + env(safe-area-inset-top)); left:12px; right:12px; z-index:4; display:flex; gap:8px; flex-wrap:wrap; pointer-events:auto; }
   .pad { bottom:calc(22px + env(safe-area-inset-bottom)); }
   @media (max-width: 420px) { .bar button { padding:8px 10px; font-size:12px; } }
-  #status { top:86px; }
+  #status { top:calc(96px + env(safe-area-inset-top)); }
   #claims { position:fixed; inset:0; background:rgba(12,6,8,.78); display:none; place-items:end center; z-index:8; }
   #claims.on { display:grid; }
   #claims .panel { max-height:72vh; overflow:auto; }
@@ -25,16 +25,16 @@
   .asset b { display:block; letter-spacing:.04em; color:#e4c98a; margin-bottom:2px; }
   .asset .share { color:#efe4d2; }
   .asset button { width:auto; margin-top:6px; padding:6px 12px; font-size:12px; }
-  #status { position:fixed; top:40px; left:18px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; }
-  #plaque { position:fixed; left:50%; bottom:108px; transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
+  #status { position:fixed; top:calc(96px + env(safe-area-inset-top)); left:18px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; pointer-events:none; }
+  #plaque { position:fixed; left:50%; bottom:calc(118px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
   #plaque b { display:block; }
-  .pad { position:fixed; left:14px; bottom:22px; display:grid; grid-template-columns:48px 48px 48px; gap:6px; z-index:3; }
-  .pad button { width:48px; height:48px; border-radius:12px; }
-  .sheet { position:fixed; inset:0; background:rgba(8,6,5,.7); display:none; place-items:end center; z-index:6; }
-  .sheet.on { display:grid; }
-  .panel { width:min(440px,100%); background:#16110e; padding:22px 20px 32px; border-radius:20px 20px 0 0; border-top:1px solid rgba(228,201,138,.4); }
+  .pad { position:fixed; left:14px; bottom:calc(22px + env(safe-area-inset-bottom)); display:grid; grid-template-columns:48px 48px 48px; gap:6px; z-index:4; pointer-events:auto; }
+  .pad button { width:48px; height:48px; border-radius:12px; touch-action:manipulation; }
+  .sheet { position:fixed; inset:0; background:rgba(8,6,5,.7); display:none; place-items:end center; z-index:6; pointer-events:none; }
+  .sheet.on { display:grid; pointer-events:auto; }
+  .panel { width:min(440px,100%); background:#16110e; padding:22px 20px 32px; border-radius:20px 20px 0 0; border-top:1px solid rgba(228,201,138,.4); pointer-events:auto; }
   .panel p { margin:8px 0; }
-  .panel button, .panel a, .panel input { display:block; width:100%; margin:8px 0; text-align:center; text-decoration:none; box-sizing:border-box; }
+  .panel button, .panel a, .panel input { display:block; width:100%; margin:8px 0; text-align:center; text-decoration:none; box-sizing:border-box; touch-action:manipulation; }
 </style>
 </head>
 <body>
