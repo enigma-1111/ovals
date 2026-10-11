@@ -255,31 +255,33 @@ renderer.domElement.addEventListener("click", (e) => {
 });
 function awardFor(nft) {
   const method = (nft.method || "").toLowerCase();
-  if (/plate/.test(method)) return "Plate key. The private red room.";
-  if (/direct/.test((nft.gaze || "").toLowerCase())) return "The look. A seat in front of the picture.";
-  const year = parseInt(nft.year, 10);
-  if (!isNaN(year) && year < 500) return "Founding sitter. An early year.";
-  if ((nft.epoch || "").toLowerCase().includes("modern")) return "Modern pass.";
-  return "Museum pass. Your wall is open.";
+  let coin = 10;
+  let pass = "Museum pass";
+  if (/plate/.test(method)) { coin = 100; pass = "Plate key"; }
+  else if (/direct/.test((nft.gaze || "").toLowerCase())) { coin = 40; pass = "The look"; }
+  else if (!isNaN(parseInt(nft.year, 10)) && parseInt(nft.year, 10) < 500) { coin = 60; pass = "Founding sitter"; }
+  else if ((nft.epoch || "").toLowerCase().includes("modern")) { coin = 25; pass = "Modern pass"; }
+  return { coin, pass, text: pass + " · " + coin + " oval" };
 }
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
   document.getElementById("floor-line").innerHTML = `Floor ${FLOOR}. <a href="${BUY}">Buy the cheapest oval</a>`;
-  document.getElementById("token-line").textContent = "Oval coin " + OVAL_TOKEN + " — placement, not live.";
+  document.getElementById("token-line").textContent = "Rewards pay in oval coin " + OVAL_TOKEN + " — placement, not live.";
   const note = document.getElementById("claims-note");
   list.innerHTML = "";
   if (!account) { note.textContent = "Enter first. The desk needs an address."; return; }
   if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; return; }
-  note.textContent = heldAssets.length + " assets. Claim what each one awards.";
+  note.textContent = heldAssets.length + " assets. Each one awards oval coin.";
   heldAssets.forEach((nft) => {
     const row = document.createElement("div");
     row.className = "asset";
     const done = localStorage.getItem(claimedKey(account, nft.id));
-    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year, nft.epoch].filter(Boolean).join(" · ")}<br>${awardFor(nft)}`;
+    const award = awardFor(nft);
+    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year, nft.epoch].filter(Boolean).join(" · ")}<br>${award.text}`;
     const b = document.createElement("button");
     b.textContent = done ? "Claimed" : "Claim award";
     b.disabled = !!done;
-    b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), awardFor(nft)); paintClaims(); };
+    b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), JSON.stringify(award)); paintClaims(); };
     row.appendChild(b);
     list.appendChild(row);
   });
