@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>Oval Room</title>
 <meta name="description" content="Walk the Oval Room." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='11' ry='14' fill='none' stroke='%23c6a15b' stroke-width='2'/%3E%3C/svg%3E" />
@@ -11,7 +11,9 @@
   canvas { display:block; width:100%; height:100%; }
   h1 { position:fixed; top:14px; left:18px; margin:0; letter-spacing:.32em; font-size:12px; font-weight:normal; color:#e4c98a; z-index:2; }
   #connect, .pad button, .panel button, .panel input, .panel a, .bar button { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(12,9,8,.72); border:1px solid rgba(228,201,138,.45); border-radius:999px; padding:9px 14px; }
-  .bar { position:fixed; top:40px; left:12px; right:12px; z-index:3; display:flex; gap:8px; flex-wrap:wrap; }
+  .bar { position:fixed; top:calc(40px + env(safe-area-inset-top)); left:12px; right:12px; z-index:3; display:flex; gap:8px; flex-wrap:wrap; }
+  .pad { bottom:calc(22px + env(safe-area-inset-bottom)); }
+  @media (max-width: 420px) { .bar button { padding:8px 10px; font-size:12px; } }
   #status { top:86px; }
   #claims { position:fixed; inset:0; background:rgba(12,6,8,.78); display:none; place-items:end center; z-index:8; }
   #claims.on { display:grid; }
@@ -37,6 +39,7 @@
 <h1>OVAL ROOM</h1>
 <div id="status">Opening the hall</div>
 <div class="bar">
+  <button id="connect">Enter</button>
   <button id="rules-open">Rules</button>
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
@@ -83,8 +86,9 @@
 </div>
 <div class="sheet" id="sheet">
   <div class="panel">
-    <p>The desk</p>
+    <h2>Enter</h2>
     <button id="use-here">Wallet in this browser</button>
+    <a href="https://metamask.app.link/dapp/ovals.vercel.app">MetaMask</a>
     <a href="https://rainbow.me/dapp/ovals.vercel.app">Rainbow</a>
     <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Coinbase Wallet</a>
     <a href="https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fovals.vercel.app">Trust Wallet</a>
@@ -372,7 +376,12 @@ async function enter(address) {
   paintClaims();
   fill(held.slice(0, 8), 7.4, -10);
 }
-function discovered() { const eth = window.ethereum; return eth && eth.providers ? eth.providers : eth ? [eth] : []; }
+function discovered() {
+  const eth = window.ethereum;
+  const list = eth && eth.providers ? eth.providers.slice() : eth ? [eth] : [];
+  list.sort((a, b) => (b.isMetaMask ? 1 : 0) - (a.isMetaMask ? 1 : 0));
+  return list;
+}
 async function connectInjected(eth) {
   if (await eth.request({ method:"eth_chainId" }) !== CHAIN) {
     try { await eth.request({ method:"wallet_switchEthereumChain", params:[{ chainId:CHAIN }] }); }
