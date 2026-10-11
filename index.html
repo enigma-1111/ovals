@@ -220,6 +220,15 @@ plant(-6.6, 2);
 plant(6.6, -2);
 plant(-6.6, -14);
 plant(6.6, -26);
+// Quiet oval curve on the floor
+const ovalRug = new THREE.Mesh(
+  new THREE.CircleGeometry(3.2, 40),
+  new THREE.MeshLambertMaterial({ color: 0x5a3828 })
+);
+ovalRug.rotation.x = -Math.PI / 2;
+ovalRug.position.set(0, 0.095, -12);
+ovalRug.scale.set(1.6, 1, 1);
+scene.add(ovalRug);
 mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 20), 0xcfc6b8, 0, 0.06, -36);
 mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 20), 0x8eb8c8, 0, 0.12, -36);
 const walkers = [];
@@ -553,3 +562,4 @@ status.textContent = "Walk. Tap a portrait.";
 </script>
 </body>
 </html>
+
