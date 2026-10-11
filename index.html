@@ -73,15 +73,32 @@ function mesh(geo, color, x, y, z) {
   return m;
 }
 mesh(new THREE.BoxGeometry(16, 0.25, 64), 0x3a2a1c, 0, 0, -10);
-mesh(new THREE.BoxGeometry(16, 0.12, 64), 0x241c18, 0, 5.1, -10);
-mesh(new THREE.BoxGeometry(0.35, 5, 64), 0x2a221c, -8, 2.5, -10);
-mesh(new THREE.BoxGeometry(0.35, 5, 64), 0x2a221c, 8, 2.5, -10);
 mesh(new THREE.CylinderGeometry(7, 7, 0.25, 32), 0x3a2a1c, 0, 0, 18);
-mesh(new THREE.CylinderGeometry(6.2, 6.2, 4.6, 28, 1, true), 0x2a221c, 0, 2.4, 18);
 mesh(new THREE.CylinderGeometry(8, 8, 0.25, 32), 0x3a2a1c, 0, 0, -36);
-mesh(new THREE.CylinderGeometry(7.2, 7.2, 4.6, 28, 1, true), 0x2a221c, 0, 2.4, -36);
-for (let i = -7; i <= 7; i += 2) mesh(new THREE.BoxGeometry(0.04, 0.04, 64), 0x4a4038, i, 5.02, -10);
-for (let z = 18; z >= -40; z -= 4) mesh(new THREE.BoxGeometry(16, 0.03, 0.04), 0x4a4038, 0, 5.02, z);
+mesh(new THREE.BoxGeometry(16, 0.16, 64), 0x241c18, 0, 8.2, -10);
+mesh(new THREE.BoxGeometry(0.35, 8, 64), 0x2a221c, -8, 4, -10);
+mesh(new THREE.BoxGeometry(0.35, 8, 64), 0x2a221c, 8, 4, -10);
+mesh(new THREE.CylinderGeometry(6.2, 6.2, 7.4, 28, 1, true), 0x2a221c, 0, 3.8, 18);
+mesh(new THREE.CylinderGeometry(7.2, 7.2, 7.4, 28, 1, true), 0x2a221c, 0, 3.8, -36);
+mesh(new THREE.CylinderGeometry(2.2, 2.2, 0.08, 20), 0xfff6e4, 0, 8.15, -8);
+mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.08, 20), 0xfff6e4, 0, 8.15, -24);
+for (let i = -7; i <= 7; i += 2) mesh(new THREE.BoxGeometry(0.04, 0.04, 64), 0x4a4038, i, 8.1, -10);
+for (let z = 18; z >= -40; z -= 4) mesh(new THREE.BoxGeometry(16, 0.03, 0.04), 0x4a4038, 0, 8.1, z);
+for (let z = 8; z >= -28; z -= 12) mesh(new THREE.CylinderGeometry(0.28, 0.32, 8, 12), 0xcfc6b8, -6.4, 4, z);
+for (let z = 2; z >= -32; z -= 12) mesh(new THREE.CylinderGeometry(0.28, 0.32, 8, 12), 0xcfc6b8, 6.4, 4, z);
+function vitrine(x, z) {
+  mesh(new THREE.BoxGeometry(1.1, 0.7, 0.7), 0xd8d0c4, x, 0.4, z);
+  mesh(new THREE.BoxGeometry(0.9, 0.55, 0.5), 0x9ec4d4, x, 0.95, z);
+}
+vitrine(-2.4, -10);
+vitrine(2.6, -22);
+function rope(z) {
+  mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 8), 0xb08a45, -1.2, 0.7, z);
+  mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 8), 0xb08a45, 1.2, 0.7, z);
+  mesh(new THREE.BoxGeometry(2.4, 0.03, 0.03), 0x8a3a32, 0, 0.85, z);
+}
+rope(10);
+rope(-12);
 for (let z = 6; z >= -24; z -= 10) {
   mesh(new THREE.BoxGeometry(1.8, 0.14, 0.5), 0x6a5040, 0, 0.46, z);
   mesh(new THREE.BoxGeometry(0.12, 0.42, 0.12), 0x4a3424, -0.7, 0.2, z);
@@ -122,15 +139,26 @@ function person(x, z, color) {
   const g = new THREE.Group();
   const cloth = new THREE.MeshLambertMaterial({ color });
   const skin = new THREE.MeshLambertMaterial({ color: 0xe2c2a4 });
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.85, 10), cloth);
-  body.position.y = 0.85;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), skin);
-  head.position.y = 1.42;
-  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.7, 8), cloth);
-  legL.position.set(-0.08, 0.35, 0);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.7, 0.22), cloth);
+  body.position.y = 1.05;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.12, 8), skin);
+  neck.position.y = 1.46;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), skin);
+  head.position.y = 1.66;
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
+  hair.position.y = 1.74;
+  hair.scale.y = 0.6;
+  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.55, 8), cloth);
+  armL.position.set(-0.26, 1.05, 0);
+  armL.rotation.z = 0.15;
+  const armR = armL.clone();
+  armR.position.x = 0.26;
+  armR.rotation.z = -0.15;
+  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.7, 8), cloth);
+  legL.position.set(-0.1, 0.35, 0);
   const legR = legL.clone();
-  legR.position.x = 0.08;
-  g.add(body, head, legL, legR);
+  legR.position.x = 0.1;
+  g.add(body, neck, head, hair, armL, armR, legL, legR);
   g.position.set(x, 0, z);
   scene.add(g);
   const s = spot();
@@ -168,12 +196,13 @@ async function loadToken(id) {
 }
 function hang(nft, x, z) {
   const g = new THREE.Group();
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.25, 0.08), new THREE.MeshLambertMaterial({ color: 0xd7b56a }));
+  const scale = 0.75 + Math.random() * 0.7;
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(1.8 * scale, 2.25 * scale, 0.1), new THREE.MeshLambertMaterial({ color: 0xd7b56a }));
   const mat = new THREE.MeshBasicMaterial({ color: 0x2a2118 });
-  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.42, 1.82), mat);
-  art.position.z = 0.05;
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.42 * scale, 1.82 * scale), mat);
+  art.position.z = 0.06;
   g.add(frame, art);
-  g.position.set(x, 2.2, z);
+  g.position.set(x, 1.6 + scale, z);
   g.lookAt(0, 2.2, z);
   scene.add(g);
   const bulb = new THREE.PointLight(0xfff6e8, 1.1, 8);
