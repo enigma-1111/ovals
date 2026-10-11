@@ -96,7 +96,7 @@ const CHAIN = "0x1237";
 const RPC = "https://rpc.mainnet.chain.robinhood.com";
 const BUY = "https://opensea.io/collection/oval-room?search%5BsortBy%5D=PRICE&search%5BsortAscending%5D=true";
 const FLOOR = "0.06 USDG";
-const OVAL_TOKEN = "0x1234";
+const WEEK = 100000;
 const POOLS = "https://pools.fun/";
 const MINT_BLOCK = 83602400;
 const status = document.getElementById("status");
@@ -306,7 +306,7 @@ function hoursSince(key) {
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
   document.getElementById("floor-line").innerHTML = `Floor ${FLOOR}. <a href="${BUY}">Buy the cheapest oval</a>`;
-  document.getElementById("token-line").textContent = "Rewards are paid in OVAL.";
+  document.getElementById("token-line").textContent = "Rewards are paid in OVAL, once a week.";
   const note = document.getElementById("claims-note");
   const list = document.getElementById("claims-list");
   const yieldLine = document.getElementById("yield-line");
@@ -314,21 +314,17 @@ function paintClaims() {
   if (!account) { note.textContent = "Enter first. The desk needs an address."; yieldLine.textContent = ""; return; }
   if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; yieldLine.textContent = ""; return; }
   note.textContent = "An oval earns OVAL. OVAL holders take 90% of the pool fees.";
-  let totalRate = 0, owed = 0;
-  heldAssets.forEach((nft) => {
-    const award = awardFor(nft, heldAssets.length);
-    totalRate += award.rate;
-    owed += award.rate * hoursSince(claimedKey(account, nft.id));
-  });
-  yieldLine.textContent = totalRate.toFixed(1) + " oval/hr · " + owed.toFixed(1) + " ready";
+  let totalWeight = 0;
+  heldAssets.forEach((nft) => { totalWeight += awardFor(nft, heldAssets.length).weight; });
+  yieldLine.textContent = "This week · your share of the room";
   heldAssets.forEach((nft) => {
     const row = document.createElement("div");
     row.className = "asset";
     const award = awardFor(nft, heldAssets.length);
-    const ready = (award.rate * hoursSince(claimedKey(account, nft.id))).toFixed(1);
-    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year].filter(Boolean).join(" · ")}<br>${award.text}<br>${ready} ready`;
+    const share = totalWeight ? Math.round(WEEK * award.weight / totalWeight) : 0;
+    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")}<br>${award.text}<br>${share.toLocaleString()} OVAL this week`;
     const b = document.createElement("button");
-    b.textContent = "Claim " + ready;
+    b.textContent = "Claim this week";
     b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), String(Date.now())); paintClaims(); };
     row.appendChild(b);
     list.appendChild(row);
