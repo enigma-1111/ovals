@@ -11,7 +11,7 @@
   canvas { display:block; width:100%; height:100%; }
   h1 { position:fixed; top:14px; left:16px; margin:0; letter-spacing:.28em; font-size:11px; color:#c9a15a; z-index:2; }
   #connect, .pad button, .panel button, .panel input, .panel a { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(10,8,7,.7); border:1px solid rgba(201,161,90,.5); border-radius:999px; padding:8px 12px; }
-  #buy-floor { position:fixed; top:10px; right:168px; z-index:3; }
+  #oval-open { position:fixed; top:10px; right:248px; z-index:3; }
   #claims-open { position:fixed; top:10px; right:92px; z-index:3; }
   #claims { position:fixed; inset:0; background:rgba(20,8,10,.82); display:none; place-items:end center; z-index:7; }
   #claims.on { display:grid; }
@@ -33,6 +33,7 @@
 <body>
 <h1>OVAL ROOM</h1>
 <div id="status">Opening the hall</div>
+<button id="oval-open">OVAL</button>
 <button id="buy-floor">Buy floor</button>
 <button id="claims-open">Claims</button>
 <div id="plaque"></div>
@@ -40,7 +41,18 @@
   <span></span><button id="up">↑</button><span></span>
   <button id="left">←</button><button id="down">↓</button><button id="right">→</button>
 </div>
-<div class="sheet" id="claims">
+<div class="sheet" id="oval">
+  <div class="panel">
+    <p>OVAL</p>
+    <p>Name Oval. Ticker OVAL. Pair WETH.</p>
+    <p>Fees to holders on. 90% of trading fees, paid in OVAL and WETH. Permanent.</p>
+    <p>Website ovals.vercel.app. Dev buy optional.</p>
+    <p id="oval-addr"></p>
+    <p id="oval-bal"></p>
+    <a id="oval-pools" href="https://pools.fun/">Open pools.fun</a>
+    <button id="close-oval">Step back</button>
+  </div>
+</div>
   <div class="panel">
     <p>The merge</p>
     <p id="claims-note">Hold an oval to earn OVAL. Hold OVAL to earn the pool.</p>
@@ -357,6 +369,17 @@ async function connectInjected(eth) {
   await enter((await eth.request({ method:"eth_requestAccounts" }))[0]);
 }
 document.getElementById("buy-floor").onclick = () => window.open(BUY, "_blank");
+document.getElementById("oval-open").onclick = () => {
+  document.getElementById("oval").classList.add("on");
+  document.getElementById("oval-addr").textContent = "Contract " + OVAL_TOKEN + (OVAL_TOKEN === "0x1234" ? " — placement, not live." : "");
+  document.getElementById("oval-bal").textContent = account ? "Checking your OVAL…" : "Enter to see your OVAL.";
+  if (account && OVAL_TOKEN !== "0x1234") {
+    rpc("eth_call", [{ to: OVAL_TOKEN, data: "0x70a08231" + account.toLowerCase().replace("0x","").padStart(64,"0") }, "latest"])
+      .then(r => { document.getElementById("oval-bal").textContent = (parseInt(r, 16) / 1e18).toFixed(2) + " OVAL"; })
+      .catch(() => { document.getElementById("oval-bal").textContent = "Could not read OVAL."; });
+  }
+};
+document.getElementById("close-oval").onclick = () => document.getElementById("oval").classList.remove("on");
 document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
 document.getElementById("claim-all").onclick = () => {
   if (!account) return;
