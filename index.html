@@ -127,15 +127,15 @@ function person(x, z, color, path) {
   g.add(body, head, legL, legR);
   g.position.set(x, 0, z);
   scene.add(g);
-  walkers.push({ mesh: g, path, i: 0, wait: 1 + Math.random() * 2 });
+  walkers.push({ mesh: g, path, i: 0, wait: 2 + Math.random() * 3, looking: true });
   return g;
 }
-person(-5.4, 12, 0x8a3a32, [[-5.4,12],[-5.2,6],[-5.4,-2],[-5.2,-12],[-4.8,-22],[0,-34],[-5.4,12]]);
-person(-4.8, 7, 0x2f4a62, [[-4.8,7],[5.2,2],[5.4,-8],[4.8,-18],[0,-34],[-4.8,7]]);
-person(5.2, 4, 0x3d3a34, [[5.2,4],[5.4,-6],[4.6,-16],[5.2,-26],[0,-34],[5.2,4]]);
-person(-4.4, 0, 0xc45a4a, [[-4.4,0],[-5.2,-8],[-4.6,-18],[0,-30],[-4.4,0]]);
-person(0.2, -8, 0x4a5560, [[0.2,-8],[3,-16],[-3,-24],[0,-34],[0.2,-8]]);
-person(5.4, -16, 0x2c3a4a, [[5.4,-16],[4.8,-24],[0,-34],[-5,-20],[5.4,-16]]);
+person(-5.2, 11, 0x8a3a32, [[-5.2,11,-7.4],[ -4.6,6,-7.4],[-5.1,-4,-7.4],[-4.8,-16,-7.4],[0,-34,0],[-5.2,11,-7.4]]);
+person(-4.4, 6.5, 0x2f4a62, [[-4.4,6.5,-7.4],[5.1,1,7.4],[5.2,-9,7.4],[4.6,-20,7.4],[0,-34,0],[-4.4,6.5,-7.4]]);
+person(5.1, 8, 0x3d3a34, [[5.1,8,7.4],[5.3,-2,7.4],[4.7,-14,7.4],[5.1,-24,7.4],[0,-33,0],[5.1,8,7.4]]);
+person(-4.8, 0.5, 0xc45a4a, [[-4.8,0.5,-7.4],[-5.2,-8,-7.4],[-4.5,-18,-7.4],[0,-32,0],[-4.8,0.5,-7.4]]);
+person(0.4, -6, 0x4a5560, [[0.4,-6,0],[3.2,-14,7.4],[-3.4,-22,-7.4],[0,-34,0],[0.4,-6,0]]);
+person(5.2, -16, 0x2c3a4a, [[5.2,-16,7.4],[4.6,-24,7.4],[0,-34,0],[-5,-18,-7.4],[5.2,-16,7.4]]);
 const frames = [];
 const loader = new THREE.TextureLoader();
 loader.setCrossOrigin("anonymous");
@@ -280,14 +280,24 @@ function tick() {
   renderer.render(scene, camera);
   const t = clock.elapsedTime;
   walkers.forEach((w) => {
-    if (w.wait > 0) { w.wait -= dt; return; }
     const p = w.path[w.i];
+    if (w.wait > 0) {
+      w.wait -= dt;
+      w.mesh.lookAt(w.face || p[2], 1.4, w.mesh.position.z);
+      return;
+    }
     const dx = p[0] - w.mesh.position.x;
     const dz = p[1] - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.2) { w.i = (w.i + 1) % w.path.length; w.wait = 1.6 + Math.random() * 2.4; return; }
-    w.mesh.position.x += dx / dist * 1.1 * dt;
-    w.mesh.position.z += dz / dist * 1.1 * dt;
+    if (dist < 0.25) {
+      w.face = p[2];
+      w.wait = 5 + Math.random() * 7;
+      w.i = (w.i + 1) % w.path.length;
+      return;
+    }
+    const step = 0.65 * dt;
+    w.mesh.position.x += dx / dist * step;
+    w.mesh.position.z += dz / dist * step;
     w.mesh.lookAt(w.mesh.position.x + dx, 0, w.mesh.position.z + dz);
   });
   requestAnimationFrame(tick);
