@@ -42,14 +42,18 @@
 </div>
 <div class="sheet" id="claims">
   <div class="panel">
-    <p>Claims desk</p>
-    <p id="claims-note">An oval is the asset. Holding it awards you.</p>
+    <p>The merge</p>
+    <p id="claims-note">The oval is the seat. The coin is the yield.</p>
+    <p id="split-line">70% holders · 20% you · 10% floor buy</p>
     <p id="floor-line"></p>
     <p id="token-line"></p>
+    <p id="yield-line"></p>
     <div id="claims-list"></div>
+    <button id="claim-all">Claim all</button>
     <button id="close-claims">Step back</button>
   </div>
 </div>
+<div class="sheet" id="sheet">
   <div class="panel">
     <p>The desk</p>
     <button id="use-here">Wallet in this browser</button>
@@ -257,38 +261,52 @@ function awardFor(nft, heldCount) {
   const method = (nft.method || "").toLowerCase();
   const gaze = (nft.gaze || "").toLowerCase();
   const year = parseInt(nft.year, 10);
-  let coin = 8;
-  const bits = ["base 8"];
-  if (/plate/.test(method)) { coin += 50; bits.push("plate +50"); }
-  else if (/ink|etch|oil/.test(method)) { coin += 18; bits.push("method +18"); }
-  else { coin += 6; bits.push("method +6"); }
-  if (/direct/.test(gaze)) { coin += 16; bits.push("direct +16"); }
-  else if (/aside|down/.test(gaze)) { coin += 6; bits.push("gaze +6"); }
-  if (!isNaN(year) && year < 500) { coin += 24; bits.push("early +24"); }
-  else if (!isNaN(year) && year < 1600) { coin += 12; bits.push("old +12"); }
-  else if (!isNaN(year) && year >= 2000) { coin += 4; bits.push("now +4"); }
-  if (heldCount >= 5) { coin += 10; bits.push("five +10"); }
-  return { coin, text: coin + " oval · " + bits.join(", ") };
+  let weight = 8;
+  const bits = ["seat 8"];
+  if (/plate/.test(method)) { weight += 50; bits.push("plate +50"); }
+  else if (/ink|etch|oil/.test(method)) { weight += 18; bits.push("method +18"); }
+  else { weight += 6; bits.push("method +6"); }
+  if (/direct/.test(gaze)) { weight += 16; bits.push("direct +16"); }
+  else if (/aside|down/.test(gaze)) { weight += 6; bits.push("gaze +6"); }
+  if (!isNaN(year) && year < 500) { weight += 24; bits.push("early +24"); }
+  else if (!isNaN(year) && year < 1600) { weight += 12; bits.push("old +12"); }
+  else if (!isNaN(year) && year >= 2000) { weight += 4; bits.push("now +4"); }
+  if (heldCount >= 5) { weight += 10; bits.push("five +10"); }
+  const rate = Math.round(weight * 0.1 * 10) / 10;
+  return { weight, rate, text: "weight " + weight + " · " + rate + "/hr · " + bits.join(", ") };
+}
+function hoursSince(key) {
+  const start = Number(localStorage.getItem(key) || 0);
+  if (!start) { localStorage.setItem(key, String(Date.now())); return 0; }
+  return Math.max(0, (Date.now() - start) / 36e5);
 }
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
   document.getElementById("floor-line").innerHTML = `Floor ${FLOOR}. <a href="${BUY}">Buy the cheapest oval</a>`;
-  document.getElementById("token-line").textContent = "Rewards pay in oval coin " + OVAL_TOKEN + " — placement, not live.";
+  document.getElementById("token-line").textContent = "Oval coin " + OVAL_TOKEN + " — placement, not live.";
   const note = document.getElementById("claims-note");
+  const list = document.getElementById("claims-list");
+  const yieldLine = document.getElementById("yield-line");
   list.innerHTML = "";
-  if (!account) { note.textContent = "Enter first. The desk needs an address."; return; }
-  if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; return; }
-  note.textContent = heldAssets.length + " assets. Each one awards oval coin.";
+  if (!account) { note.textContent = "Enter first. The desk needs an address."; yieldLine.textContent = ""; return; }
+  if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; yieldLine.textContent = ""; return; }
+  note.textContent = "Hold the oval. It earns the coin. You keep the 3% royalty.";
+  let totalRate = 0, owed = 0;
+  heldAssets.forEach((nft) => {
+    const award = awardFor(nft, heldAssets.length);
+    totalRate += award.rate;
+    owed += award.rate * hoursSince(claimedKey(account, nft.id));
+  });
+  yieldLine.textContent = totalRate.toFixed(1) + " oval/hr · " + owed.toFixed(1) + " ready";
   heldAssets.forEach((nft) => {
     const row = document.createElement("div");
     row.className = "asset";
-    const done = localStorage.getItem(claimedKey(account, nft.id));
     const award = awardFor(nft, heldAssets.length);
-    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year, nft.epoch].filter(Boolean).join(" · ")}<br>${award.text}`;
+    const ready = (award.rate * hoursSince(claimedKey(account, nft.id))).toFixed(1);
+    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.method, nft.year].filter(Boolean).join(" · ")}<br>${award.text}<br>${ready} ready`;
     const b = document.createElement("button");
-    b.textContent = done ? "Claimed" : "Claim award";
-    b.disabled = !!done;
-    b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), JSON.stringify(award)); paintClaims(); };
+    b.textContent = "Claim " + ready;
+    b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), String(Date.now())); paintClaims(); };
     row.appendChild(b);
     list.appendChild(row);
   });
@@ -338,7 +356,11 @@ async function connectInjected(eth) {
   await enter((await eth.request({ method:"eth_requestAccounts" }))[0]);
 }
 document.getElementById("buy-floor").onclick = () => window.open(BUY, "_blank");
-document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
+document.getElementById("claim-all").onclick = () => {
+  if (!account) return;
+  heldAssets.forEach((nft) => localStorage.setItem(claimedKey(account, nft.id), String(Date.now())));
+  paintClaims();
+};
 document.getElementById("close-claims").onclick = () => document.getElementById("claims").classList.remove("on");
 document.getElementById("connect").onclick = () => document.getElementById("sheet").classList.add("on");
 document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
