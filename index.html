@@ -19,10 +19,12 @@
   #claims.on { display:grid; }
   #claims .panel { max-height:72vh; overflow:auto; }
   .panel h2 { margin:0 0 8px; font-size:18px; font-weight:normal; letter-spacing:.08em; color:#e4c98a; }
-  .row { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid rgba(228,201,138,.22); }
-  .asset { border-top:1px solid rgba(228,201,138,.28); padding:12px 0; }
-  .asset b { display:block; letter-spacing:.04em; }
-  .asset button { width:auto; margin-top:8px; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:4px 0; border-top:1px solid rgba(228,201,138,.18); font-size:13px; letter-spacing:.02em; }
+  .row span:last-child { text-align:right; }
+  .asset { border-top:1px solid rgba(228,201,138,.22); padding:8px 0 6px; font-size:13px; }
+  .asset b { display:block; letter-spacing:.04em; color:#e4c98a; margin-bottom:2px; }
+  .asset .share { color:#efe4d2; }
+  .asset button { width:auto; margin-top:6px; padding:6px 12px; font-size:12px; }
   #status { position:fixed; top:40px; left:18px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; }
   #plaque { position:fixed; left:50%; bottom:108px; transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
   #plaque b { display:block; }
@@ -73,10 +75,10 @@
 <div class="sheet" id="claims">
   <div class="panel">
     <h2>Claims desk</h2>
-    <p id="claims-note">Sit. Enter. See what your ovals earn this week.</p>
-    <div class="row"><span>Trading fees</span><span>Paid in OVAL and WETH</span></div>
+    <p id="claims-note">Sit. Enter. See what your seats earn this week.</p>
     <div class="row"><span>Floor</span><span id="floor-line"></span></div>
-    <div class="row"><span>This week</span><span id="token-line">A share of OVAL</span></div>
+    <div class="row"><span>Weekly reward</span><span id="token-line">100,000 OVAL, split by seat weight</span></div>
+    <div class="row"><span>Pool fees</span><span>90% to OVAL holders, in OVAL and WETH</span></div>
     <button id="claims-enter">Enter</button>
     <p id="yield-line"></p>
     <div id="claims-list"></div>
@@ -351,18 +353,16 @@ function awardFor(nft, heldCount) {
   const gaze = (nft.gaze || "").toLowerCase();
   const year = parseInt(nft.year, 10);
   let weight = 8;
-  const bits = ["seat 8"];
-  if (/plate/.test(method)) { weight += 50; bits.push("plate +50"); }
-  else if (/ink|etch|oil/.test(method)) { weight += 18; bits.push("method +18"); }
-  else { weight += 6; bits.push("method +6"); }
-  if (/direct/.test(gaze)) { weight += 16; bits.push("direct +16"); }
-  else if (/aside|down/.test(gaze)) { weight += 6; bits.push("gaze +6"); }
-  if (!isNaN(year) && year < 500) { weight += 24; bits.push("early +24"); }
-  else if (!isNaN(year) && year < 1600) { weight += 12; bits.push("old +12"); }
-  else if (!isNaN(year) && year >= 2000) { weight += 4; bits.push("now +4"); }
-  if (heldCount >= 5) { weight += 10; bits.push("five +10"); }
-  const rate = Math.round(weight * 0.1 * 10) / 10;
-  return { weight, rate, text: "weight " + weight + " · " + rate + "/hr · " + bits.join(", ") };
+  if (/plate/.test(method)) weight += 50;
+  else if (/ink|etch|oil/.test(method)) weight += 18;
+  else weight += 6;
+  if (/direct/.test(gaze)) weight += 16;
+  else if (/aside|down/.test(gaze)) weight += 6;
+  if (!isNaN(year) && year < 500) weight += 24;
+  else if (!isNaN(year) && year < 1600) weight += 12;
+  else if (!isNaN(year) && year >= 2000) weight += 4;
+  if (heldCount >= 5) weight += 10;
+  return { weight };
 }
 function hoursSince(key) {
   const start = Number(localStorage.getItem(key) || 0);
@@ -371,8 +371,8 @@ function hoursSince(key) {
 }
 function claimedKey(address, id) { return "oval.claim." + address.toLowerCase() + "." + id; }
 function paintClaims() {
-  document.getElementById("floor-line").innerHTML = `Floor ${FLOOR}. <a href="${BUY}">Buy the cheapest oval</a>`;
-  document.getElementById("token-line").textContent = "Rewards are paid in OVAL, once a week.";
+  document.getElementById("floor-line").innerHTML = `${FLOOR} · <a href="${BUY}">Buy the cheapest</a>`;
+  document.getElementById("token-line").textContent = "100,000 OVAL, split by seat";
   const note = document.getElementById("claims-note");
   const list = document.getElementById("claims-list");
   const yieldLine = document.getElementById("yield-line");
@@ -380,19 +380,21 @@ function paintClaims() {
   if (!account) { note.textContent = "Enter to see your seats."; document.getElementById("claims-enter").style.display = "block"; yieldLine.textContent = ""; return; }
   document.getElementById("claims-enter").style.display = "none";
   if (!heldAssets.length) { note.innerHTML = `No oval on this address. <a href="${BUY}">Acquire one</a>`; yieldLine.textContent = ""; return; }
-  note.textContent = "An oval earns OVAL. OVAL holders take 90% of the pool fees.";
+  note.textContent = "Each oval is a seat. Heavier seats take more of the weekly reward.";
   let totalWeight = 0;
   heldAssets.forEach((nft) => { totalWeight += awardFor(nft, heldAssets.length).weight; });
-  yieldLine.textContent = "This week · your share of the room";
+  yieldLine.textContent = "This week";
   heldAssets.forEach((nft) => {
     const row = document.createElement("div");
     row.className = "asset";
     const award = awardFor(nft, heldAssets.length);
     const share = totalWeight ? Math.round(WEEK * award.weight / totalWeight) : 0;
-    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")}<br>${award.text}<br>${share.toLocaleString()} OVAL this week`;
+    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")}<br><span class="share">${share.toLocaleString()} OVAL</span>`;
+    const claimed = localStorage.getItem(claimedKey(account, nft.id));
     const b = document.createElement("button");
-    b.textContent = "Claim this week";
-    b.onclick = () => { localStorage.setItem(claimedKey(account, nft.id), String(Date.now())); paintClaims(); };
+    b.textContent = claimed ? "Claimed" : "Claim";
+    b.disabled = !!claimed;
+    b.onclick = () => { if (!claimed) { localStorage.setItem(claimedKey(account, nft.id), String(Date.now())); paintClaims(); } };
     row.appendChild(b);
     list.appendChild(row);
   });
