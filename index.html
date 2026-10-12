@@ -17,14 +17,14 @@
   #status { top:calc(96px + env(safe-area-inset-top)); }
   #claims { position:fixed; inset:0; background:rgba(12,6,8,.78); display:none; place-items:end center; z-index:8; }
   #claims.on { display:grid; }
-  #claims .panel { max-height:72vh; overflow:auto; }
-  .panel h2 { margin:0 0 8px; font-size:18px; font-weight:normal; letter-spacing:.08em; color:#e4c98a; }
-  .row { display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:4px 0; border-top:1px solid rgba(228,201,138,.18); font-size:13px; letter-spacing:.02em; }
+  #claims .panel { max-height:72vh; overflow:auto; padding:18px 16px 24px; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:3px 0; border-top:1px solid rgba(228,201,138,.18); font-size:12.5px; letter-spacing:.01em; }
   .row span:last-child { text-align:right; }
-  .asset { border-top:1px solid rgba(228,201,138,.22); padding:8px 0 6px; font-size:13px; }
-  .asset b { display:block; letter-spacing:.04em; color:#e4c98a; margin-bottom:2px; }
-  .asset .share { color:#efe4d2; }
-  .asset button { width:auto; margin-top:6px; padding:6px 12px; font-size:12px; }
+  .asset { display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px solid rgba(228,201,138,.22); padding:5px 0; font-size:12.5px; }
+  .asset .meta { flex:1; min-width:0; }
+  .asset b { display:block; letter-spacing:.03em; color:#e4c98a; margin-bottom:1px; font-size:13px; }
+  .asset .share { color:#efe4d2; font-size:12px; }
+  .asset button { width:auto; margin:0; padding:4px 10px; font-size:11px; flex-shrink:0; }
   #status { position:fixed; top:calc(96px + env(safe-area-inset-top)); left:18px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; pointer-events:none; }
   #plaque a { color:#2b2116; }
   #plaque { position:fixed; left:50%; bottom:calc(118px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
@@ -466,8 +466,13 @@ function paintClaims() {
   note.textContent = "Each oval is a seat. Heavier seats take more of the weekly reward.";
   let totalWeight = 0;
   heldAssets.forEach((nft) => { totalWeight += awardFor(nft, heldAssets.length).weight; });
-  const totalShare = totalWeight ? WEEK : 0;
-  yieldLine.textContent = totalShare ? `Your share this week · ${totalShare.toLocaleString()} OVAL` : "";
+  let userShare = 0;
+  heldAssets.forEach((nft) => {
+    const award = awardFor(nft, heldAssets.length);
+    const share = totalWeight ? Math.round(WEEK * award.weight / totalWeight) : 0;
+    userShare += share;
+  });
+  yieldLine.textContent = userShare ? `Your seats this week · ${userShare.toLocaleString()} OVAL` : "";
   heldAssets.forEach((nft) => {
     const row = document.createElement("div");
     row.className = "asset";
@@ -475,7 +480,10 @@ function paintClaims() {
     const share = totalWeight ? Math.round(WEEK * award.weight / totalWeight) : 0;
     const claimed = Number(localStorage.getItem(claimedKey(account, nft.id)) || 0);
     const recent = claimed && (Date.now() - claimed) < 7 * 24 * 3600000;
-    row.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")} · weight ${award.weight}<br><span class="share">${share.toLocaleString()} OVAL</span>`;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")} · weight ${award.weight}<br><span class="share">${share.toLocaleString()} OVAL</span>`;
+    row.appendChild(meta);
     const b = document.createElement("button");
     b.textContent = recent ? "Claimed" : "Claim";
     b.disabled = recent;
@@ -642,4 +650,5 @@ status.textContent = "Walk. Tap a portrait.";
 </script>
 </body>
 </html>
+
 
