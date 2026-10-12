@@ -115,71 +115,49 @@ const status = document.getElementById("status");
 if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
 const THREE = window.THREE;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07070a);
-scene.fog = new THREE.Fog(0x07070a, 18, 70);
+scene.background = new THREE.Color(0xe6e6ea);
+scene.fog = new THREE.Fog(0xe6e6ea, 28, 90);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 140);
 camera.position.set(0, 1.6, 16);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
-scene.add(new THREE.AmbientLight(0x8899aa, 0.22));
-const sky = new THREE.DirectionalLight(0xc8d4e8, 0.35);
-sky.position.set(0, 14, -10);
+scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+const sky = new THREE.DirectionalLight(0xffffff, 0.55);
+sky.position.set(2, 14, 4);
 scene.add(sky);
-const ceilingLight = new THREE.DirectionalLight(0xe8f4ff, 0.4);
-ceilingLight.position.set(0, 12, 0);
-scene.add(ceilingLight);
 function mesh(geo, color, x, y, z) {
   const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
   m.position.set(x, y, z);
   scene.add(m);
   return m;
 }
-// Dark gallery floor
-const floor = mesh(new THREE.BoxGeometry(18, 0.2, 70), 0x101014, 0, 0, -8);
-floor.material = new THREE.MeshLambertMaterial({ color: 0x101014 });
-for (let i = -8; i <= 8; i++) mesh(new THREE.BoxGeometry(0.02, 0.01, 70), 0x1c1c24, i, 0.11, -8);
-// Baseboard
-mesh(new THREE.BoxGeometry(18.2, 0.22, 70), 0x3a2a20, 0, 0.12, -8);
-// Gallery walls - deep burgundy with panels
-mesh(new THREE.BoxGeometry(0.35, 8.6, 70), 0x121218, -8.75, 4.4, -8);
-mesh(new THREE.BoxGeometry(0.35, 8.6, 70), 0x121218, 8.75, 4.4, -8);
-// Wall panels
-for (let z = 12; z >= -32; z -= 8) {
-  mesh(new THREE.BoxGeometry(0.08, 6.2, 5.5), 0x16161c, -8.5, 4.2, z);
-  mesh(new THREE.BoxGeometry(0.08, 6.2, 5.5), 0x16161c, 8.5, 4.2, z);
+mesh(new THREE.BoxGeometry(22, 0.2, 70), 0xf2f2f4, 0, 0, -8);
+mesh(new THREE.BoxGeometry(22, 0.2, 70), 0xf4f4f6, 0, 8.6, -8);
+mesh(new THREE.BoxGeometry(0.3, 8.4, 70), 0xe8e8ec, -10.8, 4.2, -8);
+mesh(new THREE.BoxGeometry(0.3, 8.4, 70), 0xe8e8ec, 10.8, 4.2, -8);
+mesh(new THREE.BoxGeometry(22, 8.4, 0.3), 0xe8e8ec, 0, 4.2, -43);
+for (let z = 14; z >= -34; z -= 8) mesh(new THREE.BoxGeometry(16, 0.04, 0.06), 0xffffff, 0, 8.4, z);
+mesh(new THREE.BoxGeometry(4.2, 4.6, 0.16), 0xf7f7f9, -6.4, 2.3, 4);
+mesh(new THREE.BoxGeometry(4.2, 4.6, 0.16), 0xf7f7f9, 6.4, 2.3, -10);
+mesh(new THREE.BoxGeometry(0.16, 4.6, 5), 0xf7f7f9, -4.2, 2.3, -20);
+mesh(new THREE.BoxGeometry(0.16, 4.6, 5), 0xf7f7f9, 4.2, 2.3, -28);
+function pillar(x, z) { mesh(new THREE.BoxGeometry(1.6, 5.4, 1.6), 0x111114, x, 2.7, z); }
+pillar(0, 2);
+pillar(0, -16);
+pillar(-6.5, -8);
+pillar(6.5, -24);
+function rug(x, z, color, w) {
+  const m = mesh(new THREE.BoxGeometry(w, 0.04, w), color, x, 0.14, z);
+  m.rotation.y = 0.08;
+  return m;
 }
-// Crown molding and ceiling structure
-mesh(new THREE.BoxGeometry(18, 0.18, 70), 0x2a181c, 0, 9.0, -8);
-mesh(new THREE.BoxGeometry(17.4, 0.1, 70), 0xc9a86a, 0, 8.85, -8);
-// Glass ceiling panes
-for (let z = 10; z >= -30; z -= 6) {
-  const glass = new THREE.Mesh(
-    new THREE.BoxGeometry(14, 0.04, 4.5),
-    new THREE.MeshBasicMaterial({ color: 0xe8f4ff, transparent: true, opacity: 0.35 })
-  );
-  glass.position.set(0, 9.12, z);
-  scene.add(glass);
-  mesh(new THREE.BoxGeometry(14.2, 0.06, 0.12), 0xd7b56a, 0, 9.08, z - 2.25);
-  mesh(new THREE.BoxGeometry(14.2, 0.06, 0.12), 0xd7b56a, 0, 9.08, z + 2.25);
-}
-// Columns
-for (let z = 14; z >= -30; z -= 6) mesh(new THREE.BoxGeometry(0.14, 8.8, 0.14), 0xd7b56a, -8.4, 4.4, z);
-for (let z = 11; z >= -33; z -= 6) mesh(new THREE.BoxGeometry(0.14, 8.8, 0.14), 0xd7b56a, 8.4, 4.4, z);
-// Museum benches - wooden with cushion, facing the walls
-function bench(x, z, face) {
-  mesh(new THREE.BoxGeometry(2.4, 0.08, 0.55), 0x5a4030, x, 0.42, z);
-  mesh(new THREE.BoxGeometry(2.2, 0.06, 0.42), 0x1a1a22, x, 0.48, z);
-  mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x - 1.0, 0.2, z - 0.18);
-  mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x + 1.0, 0.2, z - 0.18);
-  mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x - 1.0, 0.2, z + 0.18);
-  mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x + 1.0, 0.2, z + 0.18);
-}
-for (let z = 6; z >= -26; z -= 8) {
-  bench(-5.2, z, -1);
-  bench(5.2, z, 1);
-}
+rug(0, 8, 0xc43a4a, 3.4);
+rug(-4.5, -2, 0x2a8a4a, 2.6);
+rug(5, -12, 0x1a6a8a, 2.8);
+rug(-3, -22, 0xd4a020, 3.1);
+rug(4.5, -30, 0x8a3a6a, 2.4);
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
