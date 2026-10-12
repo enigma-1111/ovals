@@ -132,18 +132,18 @@ function mesh(geo, color, x, y, z) {
   scene.add(m);
   return m;
 }
-mesh(new THREE.BoxGeometry(34, 0.2, 110), 0xf2f2f4, 0, 0, -20);
-mesh(new THREE.BoxGeometry(34, 0.2, 110), 0xf4f4f6, 0, 8.6, -20);
-mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0xe8e8ec, -16.8, 4.2, -20);
-mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0xe8e8ec, 16.8, 4.2, -20);
-mesh(new THREE.BoxGeometry(34, 8.4, 0.3), 0xe8e8ec, 0, 4.2, -74);
-for (let z = 18; z >= -68; z -= 10) mesh(new THREE.BoxGeometry(28, 0.04, 0.06), 0xffffff, 0, 8.4, z);
-mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xf7f7f9, -10, 2.4, 8);
-mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xf7f7f9, 10, 2.4, -6);
-mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xf7f7f9, -6, 2.4, -22);
-mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xf7f7f9, 6, 2.4, -38);
-mesh(new THREE.BoxGeometry(8, 4.8, 0.16), 0xf7f7f9, 0, 2.4, -52);
-mesh(new THREE.BoxGeometry(0.16, 4.8, 7), 0xf7f7f9, -8, 2.4, -62);
+mesh(new THREE.BoxGeometry(34, 0.2, 110), 0x8b5a2b, 0, 0, -20); // wood floor
+mesh(new THREE.BoxGeometry(34, 0.15, 110), 0xa8d0e6, 0, 8.55, -20); // glass ceiling
+mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0x8b3a3a, -16.8, 4.2, -20); // red wall
+mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0x8b3a3a, 16.8, 4.2, -20); // red wall
+mesh(new THREE.BoxGeometry(34, 8.4, 0.3), 0x8b3a3a, 0, 4.2, -74); // red end wall
+for (let z = 18; z >= -68; z -= 10) mesh(new THREE.BoxGeometry(28, 0.03, 0.08), 0xc8e0f0, 0, 8.52, z); // glass mullions
+mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, -10, 2.4, 8);
+mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, 10, 2.4, -6);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xc4a484, -6, 2.4, -22);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xc4a484, 6, 2.4, -38);
+mesh(new THREE.BoxGeometry(8, 4.8, 0.16), 0xc4a484, 0, 2.4, -52);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 7), 0xc4a484, -8, 2.4, -62);
 function pillar(x, z) { return mesh(new THREE.BoxGeometry(1.6, 5.8, 1.6), 0x111114, x, 2.9, z); }
 const pillars = [[0, 10], [-8, 0], [8, -8], [0, -24], [-9, -36], [9, -44], [0, -58]];
 pillars.forEach(([x, z]) => pillar(x, z));
@@ -195,6 +195,28 @@ ovalRug.rotation.x = -Math.PI / 2;
 ovalRug.position.set(0, 0.095, -12);
 ovalRug.scale.set(1.6, 1, 1);
 scene.add(ovalRug);
+// Museum benches
+function bench(x, z, rot) {
+  const g = new THREE.Group();
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.45), new THREE.MeshLambertMaterial({ color: 0x6b4423 }));
+  seat.position.y = 0.42;
+  const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), new THREE.MeshLambertMaterial({ color: 0x4a2f18 }));
+  leg1.position.set(-0.7, 0.2, 0.15);
+  const leg2 = leg1.clone(); leg2.position.set(0.7, 0.2, 0.15);
+  const leg3 = leg1.clone(); leg3.position.set(-0.7, 0.2, -0.15);
+  const leg4 = leg1.clone(); leg4.position.set(0.7, 0.2, -0.15);
+  g.add(seat, leg1, leg2, leg3, leg4);
+  g.position.set(x, 0, z);
+  if (rot) g.rotation.y = rot;
+  scene.add(g);
+}
+bench(-5.5, 6, 0);
+bench(5.5, -4, 0);
+bench(-5.5, -16, 0);
+bench(5.5, -28, 0);
+bench(-4, -42, Math.PI/2);
+bench(4, -50, Math.PI/2);
+
 mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 20), 0xcfc6b8, 0, 0.06, -36);
 mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 20), 0x8eb8c8, 0, 0.12, -36);
 const walkers = [];
