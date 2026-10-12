@@ -137,10 +137,10 @@ function mesh(geo, color, x, y, z) {
   return m;
 }
 mesh(new THREE.BoxGeometry(34, 0.2, 110), 0x8b5a2b, 0, 0, -20); // wood floor
-mesh(new THREE.BoxGeometry(34, 0.15, 110), 0xa8d0e6, 0, 8.55, -20); // glass ceiling
-mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0x8b3a3a, -16.8, 4.2, -20); // red wall
-mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0x8b3a3a, 16.8, 4.2, -20); // red wall
-mesh(new THREE.BoxGeometry(34, 8.4, 0.3), 0x8b3a3a, 0, 4.2, -74); // red end wall
+mesh(new THREE.BoxGeometry(34, 0.15, 110), 0xa8d0e6, 0, 12.2, -20);
+mesh(new THREE.BoxGeometry(0.3, 12, 110), 0x8b3a3a, -16.8, 6, -20);
+mesh(new THREE.BoxGeometry(0.3, 12, 110), 0x8b3a3a, 16.8, 6, -20);
+mesh(new THREE.BoxGeometry(34, 12, 0.3), 0x8b3a3a, 0, 6, -74);
 for (let z = 18; z >= -68; z -= 10) mesh(new THREE.BoxGeometry(28, 0.03, 0.08), 0xc8e0f0, 0, 8.52, z); // glass mullions
 mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, -10, 2.4, 8);
 mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, 10, 2.4, -6);
@@ -151,6 +151,10 @@ mesh(new THREE.BoxGeometry(0.16, 4.8, 7), 0xc4a484, -8, 2.4, -62);
 function pillar(x, z) { return mesh(new THREE.BoxGeometry(1.6, 5.8, 1.6), 0x111114, x, 2.9, z); }
 const pillars = [[0, 10], [-8, 0], [8, -8], [0, -24], [-9, -36], [9, -44], [0, -58]];
 pillars.forEach(([x, z]) => pillar(x, z));
+mesh(new THREE.BoxGeometry(12, 0.16, 50), 0xc4a574, 9, 5.2, -36);
+for (let i = 0; i < 10; i++) mesh(new THREE.BoxGeometry(2.2, 0.16, 0.7), 0xb89460, 4.2, 0.3 + i * 0.5, 8 - i * 0.9);
+mesh(new THREE.BoxGeometry(0.12, 1.0, 9), 0x6b4423, 3.0, 2.6, 4);
+mesh(new THREE.BoxGeometry(0.12, 1.0, 9), 0x6b4423, 5.4, 2.6, 4);
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
@@ -290,37 +294,18 @@ async function loadToken(id) {
   const attr = (k) => { const a = (meta.attributes || []).find(x => (x.trait_type || "").toLowerCase() === k); return a ? String(a.value) : ""; };
   return { id, name: meta.name, image: meta.image, method: attr("method"), year: attr("year"), gaze: attr("gaze"), epoch: attr("epoch") };
 }
-function hang(nft, x, z) {
+function hang(nft, x, y, z, yaw) {
   const g = new THREE.Group();
-  const scale = 0.8 + Math.random() * 0.6;
-  // Thick gold frame
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(2.1 * scale, 2.55 * scale, 0.12), new THREE.MeshLambertMaterial({ color: 0xd4af6a }));
-  // Inner matting
-  const matte = new THREE.Mesh(new THREE.BoxGeometry(1.7 * scale, 2.1 * scale, 0.04), new THREE.MeshLambertMaterial({ color: 0xf5efe4 }));
-  matte.position.z = 0.05;
-  // Art
+  const w = 1.25, h = 1.55;
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.06), new THREE.MeshLambertMaterial({ color: 0xd4af6a }));
+  const matte = new THREE.Mesh(new THREE.BoxGeometry(w - 0.16, h - 0.16, 0.02), new THREE.MeshLambertMaterial({ color: 0xf5efe4 }));
+  matte.position.z = 0.03;
   const artMat = new THREE.MeshBasicMaterial({ color: 0x2a2118 });
-  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.48 * scale, 1.88 * scale), artMat);
-  art.position.z = 0.08;
-  // Label plaque under frame
-  const labelGeo = new THREE.BoxGeometry(1.6 * scale, 0.22, 0.04);
-  const labelMat = new THREE.MeshLambertMaterial({ color: 0xf8f4ec });
-  const label = new THREE.Mesh(labelGeo, labelMat);
-  label.position.set(0, -1.35 * scale, 0.04);
-  // Canvas text for label
-  const canvas = document.createElement("canvas");
-  canvas.width = 256; canvas.height = 48;
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#f8f4ec"; ctx.fillRect(0, 0, 256, 48);
-  ctx.fillStyle = "#2b2116"; ctx.font = "bold 18px Georgia";
-  ctx.textAlign = "center";
-  const labelText = (nft.name || ("Oval " + nft.id)).slice(0, 22);
-  ctx.fillText(labelText, 128, 30);
-  const tex = new THREE.CanvasTexture(canvas);
-  labelMat.map = tex; labelMat.needsUpdate = true;
-  g.add(frame, matte, art, label);
-  g.position.set(x, 1.55, z);
-  g.lookAt(0, 1.55, z);
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.28, h - 0.28), artMat);
+  art.position.z = 0.05;
+  g.add(frame, matte, art);
+  g.position.set(x, y, z);
+  g.rotation.y = yaw;
   scene.add(g);
   frames.push({ mesh: art, nft });
   if (nft.image) loader.load(nft.image, (tex) => { artMat.map = tex; artMat.color.set(0xffffff); artMat.needsUpdate = true; });
@@ -342,35 +327,53 @@ function placeFlat(nft, x, z) {
   frames.push({ mesh: art, nft });
   if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 }
-function placePillar(nft, x, z) {
+function placePillar(nft, x, z, yaw) {
   const mat = new THREE.MeshBasicMaterial({ color: 0x222 });
-  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.05), mat);
-  art.position.set(x, 2.7, z);
-  art.lookAt(0, 2.7, z);
-  scene.add(art);
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), mat);
+  const g = new THREE.Group();
+  g.add(art);
+  g.position.set(x, 2.8, z);
+  g.rotation.y = yaw;
+  scene.add(g);
   frames.push({ mesh: art, nft });
   if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 }
 async function furnish() {
   const ids = [];
-  for (let id = 1; id <= 500; id++) ids.push(id);
+  for (let id = 1; id <= 400; id++) ids.push(id);
   const slots = [];
-  for (let z = 18; z >= -70; z -= 1.5) {
-    slots.push([-15.4, z]);
-    slots.push([15.4, z]);
+  const gap = 1.7;
+  for (let z = 16; z >= -70; z -= gap) {
+    slots.push({ x: -16.35, y: 2.1, z, yaw: Math.PI / 2 });
+    slots.push({ x: 16.35, y: 2.1, z, yaw: -Math.PI / 2 });
+    slots.push({ x: -16.35, y: 7.4, z, yaw: Math.PI / 2 });
+    slots.push({ x: 16.35, y: 7.4, z, yaw: -Math.PI / 2 });
   }
-  // gray partitions
-  for (let x = -12.4; x <= -7.6; x += 1.6) { slots.push([x, 8.2]); slots.push([x, 7.8]); }
-  for (let x = 7.6; x <= 12.4; x += 1.6) { slots.push([x, -5.8]); slots.push([x, -6.2]); }
-  for (let z = -25.4; z <= -18.6; z += 1.6) { slots.push([-6.2, z]); slots.push([-5.8, z]); }
-  for (let z = -41.4; z <= -34.6; z += 1.6) { slots.push([5.8, z]); slots.push([6.2, z]); }
-  for (let x = -3.2; x <= 3.2; x += 1.6) { slots.push([x, -51.8]); slots.push([x, -52.2]); }
-  for (let z = -65; z <= -59; z += 1.6) { slots.push([-8.2, z]); slots.push([-7.8, z]); }
+  for (let x = -12.2; x <= -7.8; x += gap) {
+    slots.push({ x, y: 2.1, z: 8.16, yaw: 0 });
+    slots.push({ x, y: 2.1, z: 7.84, yaw: Math.PI });
+  }
+  for (let x = 7.8; x <= 12.2; x += gap) {
+    slots.push({ x, y: 2.1, z: -5.84, yaw: 0 });
+    slots.push({ x, y: 2.1, z: -6.16, yaw: Math.PI });
+  }
+  for (let z = -25.2; z <= -18.8; z += gap) {
+    slots.push({ x: -5.84, y: 2.1, z, yaw: Math.PI / 2 });
+    slots.push({ x: -6.16, y: 2.1, z, yaw: -Math.PI / 2 });
+  }
+  for (let z = -41.2; z <= -34.8; z += gap) {
+    slots.push({ x: 6.16, y: 2.1, z, yaw: Math.PI / 2 });
+    slots.push({ x: 5.84, y: 2.1, z, yaw: -Math.PI / 2 });
+  }
+  for (let x = -3.2; x <= 3.2; x += gap) {
+    slots.push({ x, y: 2.1, z: -51.84, yaw: 0 });
+    slots.push({ x, y: 2.1, z: -52.16, yaw: Math.PI });
+  }
   pillars.forEach(([x, z]) => {
-    slots.push([x, z + 0.82, "pillar"]);
-    slots.push([x, z - 0.82, "pillar"]);
-    slots.push([x + 0.82, z, "pillar"]);
-    slots.push([x - 0.82, z, "pillar"]);
+    slots.push({ x, y: 2.8, z: z + 0.86, yaw: 0, pillar: true });
+    slots.push({ x, y: 2.8, z: z - 0.86, yaw: Math.PI, pillar: true });
+    slots.push({ x: x + 0.86, y: 2.8, z, yaw: Math.PI / 2, pillar: true });
+    slots.push({ x: x - 0.86, y: 2.8, z, yaw: -Math.PI / 2, pillar: true });
   });
   let placed = 0;
   for (let i = 0; i < ids.length; i += 8) {
@@ -378,9 +381,9 @@ async function furnish() {
     const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
     tokens.forEach((nft) => {
       if (!nft || placed >= slots.length) return;
-      const slot = slots[placed++];
-      if (slot[2] === "pillar") placePillar(nft, slot[0], slot[1]);
-      else hang(nft, slot[0], slot[1]);
+      const s = slots[placed++];
+      if (s.pillar) placePillar(nft, s.x, s.z, s.yaw);
+      else hang(nft, s.x, s.y, s.z, s.yaw);
     });
     status.textContent = "Hanging " + placed + " ovals";
   }
@@ -514,6 +517,12 @@ function animate() {
   if (keys["d"] || keys["arrowright"] || joyX > 0.2) camera.position.x += speed;
   camera.position.x = Math.max(-15, Math.min(15, camera.position.x));
   camera.position.z = Math.max(-70, Math.min(18, camera.position.z));
+  const onStair = camera.position.z < 8.4 && camera.position.z > -1 && Math.abs(camera.position.x - 4.2) < 1.3;
+  const onDeck = camera.position.x > 3.2 && camera.position.z < -11 && camera.position.z > -60;
+  let stand = 1.6;
+  if (onStair) stand = 1.6 + ((8.4 - camera.position.z) / 9.4) * 3.6;
+  else if (onDeck) stand = 6.8;
+  camera.position.y = stand;
   walkers.forEach(w => {
     if (w.wait > 0) { w.wait -= 0.016; return; }
     const dx = w.tx - w.mesh.position.x, dz = w.tz - w.mesh.position.z;
