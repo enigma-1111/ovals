@@ -26,10 +26,11 @@
   .asset .share { color:#efe4d2; }
   .asset button { width:auto; margin-top:6px; padding:6px 12px; font-size:12px; }
   #status { position:fixed; top:calc(96px + env(safe-area-inset-top)); left:18px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; pointer-events:none; }
-  #plaque a { color:#2b2116; }\n  #plaque { position:fixed; left:50%; bottom:calc(118px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
+  #plaque a { color:#2b2116; }
+  #plaque { position:fixed; left:50%; bottom:calc(118px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
   #plaque b { display:block; }
-  .pad { position:fixed; left:14px; bottom:calc(22px + env(safe-area-inset-bottom)); display:grid; grid-template-columns:48px 48px 48px; gap:6px; z-index:4; pointer-events:auto; }
-  .pad button { width:48px; height:48px; border-radius:12px; touch-action:manipulation; }
+  #stick { position:fixed; left:18px; bottom:calc(22px + env(safe-area-inset-bottom)); width:112px; height:112px; border-radius:50%; background:rgba(12,9,8,.55); border:1px solid rgba(228,201,138,.45); z-index:4; touch-action:none; }
+  #knob { position:absolute; left:36px; top:36px; width:40px; height:40px; border-radius:50%; background:#efe4d2; }
   .sheet { position:fixed; inset:0; background:rgba(8,6,5,.7); display:none; place-items:end center; z-index:6; pointer-events:none; }
   .sheet.on { display:grid; pointer-events:auto; }
   .panel { width:min(440px,100%); background:#16110e; padding:22px 20px 32px; border-radius:20px 20px 0 0; border-top:1px solid rgba(228,201,138,.4); pointer-events:auto; }
@@ -48,10 +49,7 @@
   <button id="claims-open">Claims</button>
 </div>
 <div id="plaque"></div>
-<div class="pad">
-  <span></span><button id="up">↑</button><span></span>
-  <button id="left">←</button><button id="down">↓</button><button id="right">→</button>
-</div>
+<div id="stick"><div id="knob"></div></div>
 <div class="sheet" id="rules">
   <div class="panel">
     <h2>Rules</h2>
@@ -351,18 +349,35 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   pitch = Math.max(-0.45, Math.min(0.45, pitch - (e.clientY - lastY) * 0.004));
   lastX = e.clientX; lastY = e.clientY;
 });
-function hold(id, code) {
-  const b = document.getElementById(id);
-  b.addEventListener("pointerdown", (e) => { e.preventDefault(); keys[code] = true; });
-  b.addEventListener("pointerup", () => keys[code] = false);
-  b.addEventListener("pointerleave", () => keys[code] = false);
-  b.addEventListener("pointercancel", () => keys[code] = false);
+const joy = { x: 0, y: 0 };
+const stick = document.getElementById("stick");
+const knob = document.getElementById("knob");
+let sticking = false;
+function setJoy(e) {
+  const r = stick.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let dx = e.clientX - cx, dy = e.clientY - cy;
+  const max = 34;
+  const len = Math.hypot(dx, dy) || 1;
+  const k = Math.min(max, len) / len;
+  dx *= k; dy *= k;
+  joy.x = dx / max; joy.y = dy / max;
+  knob.style.left = (36 + dx) + "px";
+  knob.style.top = (36 + dy) + "px";
 }
-hold("up", "w"); hold("down", "s"); hold("left", "a"); hold("right", "d");
+stick.addEventListener("pointerdown", (e) => { sticking = true; stick.setPointerCapture(e.pointerId); setJoy(e); });
+stick.addEventListener("pointermove", (e) => { if (sticking) setJoy(e); });
+function endJoy() { sticking = false; joy.x = 0; joy.y = 0; knob.style.left = "36px"; knob.style.top = "36px"; }
+stick.addEventListener("pointerup", endJoy);
+stick.addEventListener("pointercancel", endJoy);
 const ray = new THREE.Raycaster();
-renderer.domElement.addEventListener("click", (e) => {
-  ray.setFromCamera({ x: (e.clientX / innerWidth) * 2 - 1, y: -(e.clientY / innerHeight) * 2 + 1 }, camera);
-  const hit = ray.intersectObjects(frames.map(f => f.mesh))[0];
+let downX = 0, downY = 0;
+renderer.domElement.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
+renderer.domElement.addEventListener("pointerup", (e) => {
+  if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera({ x: ((e.clientX - rect.left) / rect.width) * 2 - 1, y: -((e.clientY - rect.top) / rect.height) * 2 + 1 }, camera);
+  const hit = ray.intersectObjects(frames.map(f => f.mesh), false)[0];
   const box = document.getElementById("plaque");
   if (!hit) { box.style.display = "none"; return; }
   const nft = frames.find(f => f.mesh === hit.object).nft;
@@ -517,6 +532,18 @@ document.getElementById("use-addr").onclick = async () => { const address = docu
 const saved = localStorage.getItem("oval.address");
 if (saved && validAddress(saved)) enter(saved);
 const clock = new THREE.Clock();
+const blocks = [
+  [-16.8, -20, 0.6, 55], [16.8, -20, 0.6, 55], [0, -74, 17, 0.6],
+  [-10, 8, 3.1, 0.4], [10, -6, 3.1, 0.4], [-6, -22, 0.4, 4.1], [6, -38, 0.4, 4.1],
+  [0, -52, 4.1, 0.4], [-8, -62, 0.4, 3.6]
+];
+[[0,10],[-8,0],[8,-8],[0,-24],[-9,-36],[9,-44],[0,-58]].forEach(([x,z]) => blocks.push([x, z, 1.1, 1.1]));
+function blocked(x, z) {
+  for (const b of blocks) {
+    if (Math.abs(x - b[0]) < b[2] + 0.45 && Math.abs(z - b[1]) < b[3] + 0.45) return true;
+  }
+  return false;
+}
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const dir = new THREE.Vector3();
@@ -524,13 +551,19 @@ function tick() {
   if (keys.s || keys.arrowdown) dir.z += 1;
   if (keys.a || keys.arrowleft) dir.x -= 1;
   if (keys.d || keys.arrowright) dir.x += 1;
+  dir.x += joy.x;
+  dir.z += joy.y;
   if (dir.length()) {
     dir.normalize();
     dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    camera.position.addScaledVector(dir, 4.2 * dt);
+    const step = 4.2 * dt;
+    const nx = camera.position.x + dir.x * step;
+    const nz = camera.position.z + dir.z * step;
+    if (!blocked(nx, camera.position.z)) camera.position.x = nx;
+    if (!blocked(camera.position.x, nz)) camera.position.z = nz;
   }
-  camera.position.x = Math.max(-12, Math.min(12, camera.position.x));
-  camera.position.z = Math.max(ovalBalance > 0 && OVAL_TOKEN !== "0x1234" ? -70 : -68, Math.min(22, camera.position.z));
+  camera.position.x = Math.max(-15.4, Math.min(15.4, camera.position.x));
+  camera.position.z = Math.max(-71.5, Math.min(22, camera.position.z));
   camera.position.y = 1.6;
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
