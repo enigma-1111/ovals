@@ -1,1 +1,554 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Oval Room</title>
+<meta name="description" content="Walk the Oval Room." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='11' ry='14' fill='none' stroke='%23c6a15b' stroke-width='2'/%3E%3C/svg%3E" />
+<style>
+  html, body { margin:0; height:100%; background:#14110f; color:#efe4d2; font:15px/1.45 Palatino, Georgia, serif; overflow:hidden; }
+  canvas { display:block; width:100%; height:100%; touch-action:none; }
+  h1 { position:fixed; top:calc(6px + env(safe-area-inset-top)); left:16px; margin:0; letter-spacing:.28em; font-size:11px; font-weight:normal; color:#e4c98a; z-index:12; pointer-events:none; white-space:nowrap; }
+  #connect, .pad button, .panel button, .panel input, .panel a, .bar button { font:13px/1 Palatino, Georgia, serif; color:#efe4d2; background:rgba(12,9,8,.78); border:1px solid rgba(228,201,138,.55); border-radius:999px; padding:10px 14px; touch-action:manipulation; }
+  .bar { position:fixed; top:calc(36px + env(safe-area-inset-top)); left:8px; right:8px; z-index:11; display:flex; gap:6px; flex-wrap:wrap; pointer-events:auto; justify-content:flex-start; }
+  .pad { bottom:calc(22px + env(safe-area-inset-bottom)); }
+  @media (max-width: 420px) { 
+    .bar button { padding:9px 11px; font-size:12.5px; } 
+    h1 { font-size:10.5px; letter-spacing:.22em; }
+    .bar { top:calc(32px + env(safe-area-inset-top)); }
+  }
+  #status { top:calc(88px + env(safe-area-inset-top)); }
+  #claims { position:fixed; inset:0; background:rgba(12,6,8,.78); display:none; place-items:end center; z-index:20; pointer-events:none; }
+  #claims.on { display:grid; pointer-events:auto; }
+  #claims .panel { max-height:70vh; overflow:auto; padding:16px 14px 20px; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:3px 0; border-top:1px solid rgba(228,201,138,.18); font-size:12.5px; letter-spacing:.01em; }
+  .row span:last-child { text-align:right; }
+  .asset { display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px solid rgba(228,201,138,.22); padding:5px 0; font-size:12.5px; }
+  .asset .meta { flex:1; min-width:0; }
+  .asset b { display:block; letter-spacing:.03em; color:#e4c98a; margin-bottom:1px; font-size:13px; }
+  .asset .share { color:#efe4d2; font-size:12px; }
+  .asset button { width:auto; margin:0; padding:4px 10px; font-size:11px; flex-shrink:0; }
+  #status { position:fixed; top:calc(88px + env(safe-area-inset-top)); left:16px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; pointer-events:none; }
+  #plaque a { color:#2b2116; }
+  #plaque { position:fixed; left:50%; bottom:calc(130px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
+  #plaque b { display:block; }
+  #stick { position:fixed; left:16px; bottom:calc(18px + env(safe-area-inset-bottom)); width:108px; height:108px; border-radius:50%; background:rgba(12,9,8,.6); border:1px solid rgba(228,201,138,.5); z-index:5; touch-action:none; }
+  #knob { position:absolute; left:34px; top:34px; width:40px; height:40px; border-radius:50%; background:#efe4d2; }
+  .sheet { position:fixed; inset:0; background:rgba(8,6,5,.7); display:none; place-items:end center; z-index:15; pointer-events:none; }
+  .sheet.on { display:grid; pointer-events:auto; }
+  .panel { width:min(420px,100%); background:#16110e; padding:20px 16px 28px; border-radius:18px 18px 0 0; border-top:1px solid rgba(228,201,138,.4); pointer-events:auto; margin-bottom:0; }
+  .panel p { margin:8px 0; }
+  .panel button, .panel a, .panel input { display:block; width:100%; margin:8px 0; text-align:center; text-decoration:none; box-sizing:border-box; touch-action:manipulation; }
+</style>
+</head>
+<body>
+<h1>OVAL ROOM</h1>
+<div id="status">Opening the hall</div>
+<div class="bar">
+  <button id="connect">Enter</button>
+  <button id="rules-open">Proof Rules</button>
+  <button id="oval-open">OVAL</button>
+  <button id="buy-floor">Buy floor</button>
+  <button id="claims-open">Claims</button>
+</div>
+<div id="plaque"></div>
+<div id="stick"><div id="knob"></div></div>
+<div class="sheet" id="rules">
+  <div class="panel">
+    <h2>Proof Rules</h2>
+    <p>An oval is a seat. Holding one earns OVAL.</p>
+    <p>Holding OVAL earns the trading fees, in OVAL and WETH.</p>
+    <p>The gold door is for holders of the coin.</p>
+    <p>Each picture carries a 3% royalty.</p>
+    <button id="close-rules">Step back</button>
+  </div>
+</div>
+  <div class="sheet" id="oval">
+  <div class="panel">
+    <h2>OVAL</h2>
+    <p>The coin. Paired with WETH.</p>
+    <p>Hold it, and the trading fees come to you in OVAL and WETH.</p>
+    <p id="oval-bal"></p>
+    <a id="oval-pools" href="https://pools.fun/">Trade OVAL</a>
+    <button id="close-oval">Step back</button>
+  </div>
+</div>
+<div class="sheet" id="claims">
+  <div class="panel">
+    <h2>Claims desk</h2>
+    <p id="claims-note">Sit. Enter. See what your seats earn this week.</p>
+    <div class="row"><span>Floor</span><span id="floor-line"></span></div>
+    <div class="row"><span>Weekly reward</span><span id="token-line">100,000 OVAL, split by seat weight</span></div>
+    <div class="row"><span>Pool fees</span><span>90% to OVAL holders, in OVAL and WETH</span></div>
+    <button id="claims-enter">Enter</button>
+    <p id="yield-line"></p>
+    <div id="claims-list"></div>
+    <button id="claim-all">Claim all</button>
+    <button id="close-claims">Step back</button>
+  </div>
+</div>
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <h2>Enter</h2>
+    <button id="use-here">Wallet in this browser</button>
+    <a href="https://metamask.app.link/dapp/ovals.vercel.app">MetaMask</a>
+    <a href="https://rainbow.me/dapp/ovals.vercel.app">Rainbow</a>
+    <a href="https://go.cb-w.com/dapp?cb_url=https%3A%2F%2Fovals.vercel.app">Coinbase Wallet</a>
+    <a href="https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Fovals.vercel.app">Trust Wallet</a>
+    <input id="addr" placeholder="Paste 0x address" autocapitalize="off" spellcheck="false" />
+    <button id="use-addr">Check this address</button>
+    <button id="close-sheet">Step back</button>
+    <p id="sheet-note"></p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+const CONTRACT = "0xb8611673d94f3846c619e2a146b84e793f93f931";
+const CHAIN = "0x1237";
+const RPC = "https://rpc.mainnet.chain.robinhood.com";
+function sea(id) { return "https://opensea.io/item/robinhood/" + CONTRACT + "/" + id; }
+const BUY = "https://opensea.io/collection/oval-room?search%5BsortBy%5D=PRICE&search%5BsortAscending%5D=true";
+const FLOOR = "0.06 USDG";
+const WEEK = 100000;
+const OVAL_TOKEN = "0x1234";
+const POOLS = "https://pools.fun/";
+const MINT_BLOCK = 83602400;
+const status = document.getElementById("status");
+if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
+const THREE = window.THREE;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe6e6ea);
+scene.fog = new THREE.Fog(0xe6e6ea, 28, 90);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 140);
+camera.position.set(0, 1.6, 16);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+document.body.insertBefore(renderer.domElement, document.body.firstChild);
+scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+const sky = new THREE.DirectionalLight(0xffffff, 0.55);
+sky.position.set(2, 14, 4);
+scene.add(sky);
+function mesh(geo, color, x, y, z) {
+  const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color }));
+  m.position.set(x, y, z);
+  scene.add(m);
+  return m;
+}
+mesh(new THREE.BoxGeometry(34, 0.2, 110), 0x8b5a2b, 0, 0, -20); // wood floor
+mesh(new THREE.BoxGeometry(34, 0.15, 110), 0xa8d0e6, 0, 12.2, -20);
+mesh(new THREE.BoxGeometry(0.3, 12, 110), 0x8b3a3a, -16.8, 6, -20);
+mesh(new THREE.BoxGeometry(0.3, 12, 110), 0x8b3a3a, 16.8, 6, -20);
+mesh(new THREE.BoxGeometry(34, 12, 0.3), 0x8b3a3a, 0, 6, -74);
+for (let z = 18; z >= -68; z -= 10) mesh(new THREE.BoxGeometry(28, 0.03, 0.08), 0xc8e0f0, 0, 8.52, z); // glass mullions
+mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, -10, 2.4, 8);
+mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, 10, 2.4, -6);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xc4a484, -6, 2.4, -22);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xc4a484, 6, 2.4, -38);
+mesh(new THREE.BoxGeometry(8, 4.8, 0.16), 0xc4a484, 0, 2.4, -52);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 7), 0xc4a484, -8, 2.4, -62);
+function pillar(x, z) { return mesh(new THREE.BoxGeometry(1.6, 5.8, 1.6), 0x111114, x, 2.9, z); }
+const pillars = [[0, 10], [-8, 0], [8, -8], [0, -24], [-9, -36], [9, -44], [0, -58]];
+pillars.forEach(([x, z]) => pillar(x, z));
+mesh(new THREE.BoxGeometry(12, 0.16, 50), 0xc4a574, 9, 5.2, -36);
+for (let i = 0; i < 10; i++) mesh(new THREE.BoxGeometry(2.2, 0.16, 0.7), 0xb89460, 4.2, 0.3 + i * 0.5, 8 - i * 0.9);
+mesh(new THREE.BoxGeometry(0.12, 1.0, 9), 0x6b4423, 3.0, 2.6, 4);
+mesh(new THREE.BoxGeometry(0.12, 1.0, 9), 0x6b4423, 5.4, 2.6, 4);
+let account = null, heldAssets = [], ovalBalance = 0;
+// Door
+const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
+const doorLeaf = mesh(new THREE.BoxGeometry(1.6, 2.6, 0.06), 0xd7b56a, 0, 1.6, -41.35);
+function updateDoor() {
+  const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
+  const open = live && ovalBalance > 0;
+  doorLeaf.visible = true;
+  if (open) {
+    doorLeaf.material.color.set(0x3a8a4a);
+    doorLeaf.position.x = 1.15;
+    doorLeaf.rotation.y = Math.PI / 3;
+  } else {
+    doorLeaf.material.color.set(0xd7b56a);
+    doorLeaf.position.x = 0;
+    doorLeaf.rotation.y = 0;
+  }
+}
+updateDoor();
+function statue(x, z) {
+  const stone = 0xd8d0c4;
+  mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.16, 16), 0xb7a48a, x, 0.1, z);
+  mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.7, 16), 0xcfc6b8, x, 0.52, z);
+  mesh(new THREE.SphereGeometry(0.22, 16, 12), stone, x, 1.55, z);
+  mesh(new THREE.CylinderGeometry(0.16, 0.22, 0.7, 12), stone, x, 1.05, z);
+  const lamp = new THREE.PointLight(0xfff4e2, 0.15, 4);
+  lamp.position.set(x, 2.4, z);
+  scene.add(lamp);
+}
+statue(-3.2, 4);
+statue(3.2, -6);
+statue(-3.2, -18);
+statue(3.2, -30);
+function plant(x, z) {
+  mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.28, 10), 0x6a5340, x, 0.16, z);
+  mesh(new THREE.SphereGeometry(0.28, 10, 8), 0x3d5a3a, x, 0.5, z);
+}
+plant(-6.6, 2);
+plant(6.6, -2);
+plant(-6.6, -14);
+plant(6.6, -26);
+// Quiet oval curve on the floor
+const ovalRug = new THREE.Mesh(
+  new THREE.CircleGeometry(3.2, 40),
+  new THREE.MeshLambertMaterial({ color: 0x5a3828 })
+);
+ovalRug.rotation.x = -Math.PI / 2;
+ovalRug.position.set(0, 0.095, -12);
+ovalRug.scale.set(1.6, 1, 1);
+scene.add(ovalRug);
+// Museum benches
+function bench(x, z, rot) {
+  const g = new THREE.Group();
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 0.45), new THREE.MeshLambertMaterial({ color: 0x6b4423 }));
+  seat.position.y = 0.42;
+  const leg1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), new THREE.MeshLambertMaterial({ color: 0x4a2f18 }));
+  leg1.position.set(-0.7, 0.2, 0.15);
+  const leg2 = leg1.clone(); leg2.position.set(0.7, 0.2, 0.15);
+  const leg3 = leg1.clone(); leg3.position.set(-0.7, 0.2, -0.15);
+  const leg4 = leg1.clone(); leg4.position.set(0.7, 0.2, -0.15);
+  g.add(seat, leg1, leg2, leg3, leg4);
+  g.position.set(x, 0, z);
+  if (rot) g.rotation.y = rot;
+  scene.add(g);
+}
+bench(-5.5, 6, 0);
+bench(5.5, -4, 0);
+bench(-5.5, -16, 0);
+bench(5.5, -28, 0);
+bench(-4, -42, Math.PI/2);
+bench(4, -50, Math.PI/2);
+
+mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 20), 0xcfc6b8, 0, 0.06, -36);
+mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.04, 20), 0x8eb8c8, 0, 0.12, -36);
+const walkers = [];
+function spot() {
+  const wall = Math.random() < 0.5 ? -1 : 1;
+  return [wall * (4.6 + Math.random() * 1.4), 14 - Math.random() * 46, wall * 7.4];
+}
+function faceYaw(mesh, x, z) {
+  mesh.rotation.x = 0;
+  mesh.rotation.z = 0;
+  mesh.rotation.y = Math.atan2(x - mesh.position.x, z - mesh.position.z);
+}
+function person(x, z, color) {
+  const g = new THREE.Group();
+  const cloth = new THREE.MeshLambertMaterial({ color });
+  const skin = new THREE.MeshLambertMaterial({ color: 0xe2c2a4 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.78, 0.24), cloth);
+  body.position.y = 1.02;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 8), skin);
+  neck.position.y = 1.46;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 12), skin);
+  head.position.y = 1.64;
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.155, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
+  hair.position.y = 1.72;
+  hair.scale.y = 0.55;
+  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.5, 8), cloth);
+  armL.position.set(-0.28, 1.02, 0);
+  const armR = armL.clone();
+  armR.position.x = 0.28;
+  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.07, 0.62, 8), cloth);
+  legL.position.set(-0.1, 0.32, 0);
+  const legR = legL.clone();
+  legR.position.x = 0.1;
+  g.add(body, neck, head, hair, armL, armR, legL, legR);
+  g.position.set(x, 0, z);
+  scene.add(g);
+  const s = spot();
+  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 1 + Math.random() * 2, phase: Math.random() * 6 });
+  return g;
+}
+person(-5.2, 11, 0x8a3a32);
+person(-4.4, 6.5, 0x2f4a62);
+person(5.1, 8, 0x3d3a34);
+person(-4.8, 0.5, 0xc45a4a);
+person(0.4, -6, 0x4a5560);
+person(5.2, -16, 0x2c3a4a);
+const frames = [];
+const loader = new THREE.TextureLoader();
+loader.setCrossOrigin("anonymous");
+function hexPad(n) { return Number(n).toString(16).padStart(64, "0"); }
+async function rpc(method, params) {
+  const res = await fetch(RPC, { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify({ jsonrpc:"2.0", id:1, method, params }) });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message || "The chain did not answer.");
+  return json.result;
+}
+function decodeAbiString(hex) {
+  const h = hex.replace(/^0x/, "");
+  const len = parseInt(h.slice(64, 128), 16);
+  const bytes = h.slice(128, 128 + len * 2);
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 2) s += String.fromCharCode(parseInt(bytes.slice(i, i + 2), 16));
+  return s;
+}
+async function loadToken(id) {
+  const meta = JSON.parse(atob(decodeAbiString(await rpc("eth_call", [{ to:CONTRACT, data:"0xc87b56dd" + hexPad(id) }, "latest"])).split(",")[1]));
+  const attr = (k) => { const a = (meta.attributes || []).find(x => (x.trait_type || "").toLowerCase() === k); return a ? String(a.value) : ""; };
+  return { id, name: meta.name, image: meta.image, method: attr("method"), year: attr("year"), gaze: attr("gaze"), epoch: attr("epoch") };
+}
+function hang(nft, x, y, z, yaw) {
+  const g = new THREE.Group();
+  const w = 1.25, h = 1.55;
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.06), new THREE.MeshLambertMaterial({ color: 0xd4af6a }));
+  const matte = new THREE.Mesh(new THREE.BoxGeometry(w - 0.16, h - 0.16, 0.02), new THREE.MeshLambertMaterial({ color: 0xf5efe4 }));
+  matte.position.z = 0.03;
+  const artMat = new THREE.MeshBasicMaterial({ color: 0x2a2118 });
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.28, h - 0.28), artMat);
+  art.position.z = 0.05;
+  g.add(frame, matte, art);
+  g.position.set(x, y, z);
+  g.rotation.y = yaw;
+  scene.add(g);
+  frames.push({ mesh: art, nft });
+  if (nft.image) loader.load(nft.image, (tex) => { artMat.map = tex; artMat.color.set(0xffffff); artMat.needsUpdate = true; });
+}
+async function fill(ids, side, start) {
+  for (let i = 0; i < ids.length; i++) {
+    try { hang(await loadToken(ids[i]), side, start - i * 5.2); } catch (e) {}
+  }
+}
+function placeFlat(nft, x, z) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color: 0x222 });
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), mat);
+  art.rotation.x = -Math.PI / 2;
+  art.position.y = 0.16;
+  g.add(art);
+  g.position.set(x, 0, z);
+  scene.add(g);
+  frames.push({ mesh: art, nft });
+  if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
+}
+function placePillar(nft, x, z, yaw) {
+  const mat = new THREE.MeshBasicMaterial({ color: 0x222 });
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), mat);
+  const g = new THREE.Group();
+  g.add(art);
+  g.position.set(x, 2.8, z);
+  g.rotation.y = yaw;
+  scene.add(g);
+  frames.push({ mesh: art, nft });
+  if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
+}
+async function furnish() {
+  const ids = [];
+  for (let id = 1; id <= 400; id++) ids.push(id);
+  const slots = [];
+  const gap = 1.7;
+  for (let z = 16; z >= -70; z -= gap) {
+    slots.push({ x: -16.35, y: 2.1, z, yaw: Math.PI / 2 });
+    slots.push({ x: 16.35, y: 2.1, z, yaw: -Math.PI / 2 });
+    slots.push({ x: -16.35, y: 7.4, z, yaw: Math.PI / 2 });
+    slots.push({ x: 16.35, y: 7.4, z, yaw: -Math.PI / 2 });
+  }
+  for (let x = -12.2; x <= -7.8; x += gap) {
+    slots.push({ x, y: 2.1, z: 8.16, yaw: 0 });
+    slots.push({ x, y: 2.1, z: 7.84, yaw: Math.PI });
+  }
+  for (let x = 7.8; x <= 12.2; x += gap) {
+    slots.push({ x, y: 2.1, z: -5.84, yaw: 0 });
+    slots.push({ x, y: 2.1, z: -6.16, yaw: Math.PI });
+  }
+  for (let z = -25.2; z <= -18.8; z += gap) {
+    slots.push({ x: -5.84, y: 2.1, z, yaw: Math.PI / 2 });
+    slots.push({ x: -6.16, y: 2.1, z, yaw: -Math.PI / 2 });
+  }
+  for (let z = -41.2; z <= -34.8; z += gap) {
+    slots.push({ x: 6.16, y: 2.1, z, yaw: Math.PI / 2 });
+    slots.push({ x: 5.84, y: 2.1, z, yaw: -Math.PI / 2 });
+  }
+  for (let x = -3.2; x <= 3.2; x += gap) {
+    slots.push({ x, y: 2.1, z: -51.84, yaw: 0 });
+    slots.push({ x, y: 2.1, z: -52.16, yaw: Math.PI });
+  }
+  pillars.forEach(([x, z]) => {
+    slots.push({ x, y: 2.8, z: z + 0.86, yaw: 0, pillar: true });
+    slots.push({ x, y: 2.8, z: z - 0.86, yaw: Math.PI, pillar: true });
+    slots.push({ x: x + 0.86, y: 2.8, z, yaw: Math.PI / 2, pillar: true });
+    slots.push({ x: x - 0.86, y: 2.8, z, yaw: -Math.PI / 2, pillar: true });
+  });
+  let placed = 0;
+  for (let i = 0; i < ids.length; i += 8) {
+    const batch = ids.slice(i, i + 8);
+    const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
+    tokens.forEach((nft) => {
+      if (!nft || placed >= slots.length) return;
+      const s = slots[placed++];
+      if (s.pillar) placePillar(nft, s.x, s.z, s.yaw);
+      else hang(nft, s.x, s.y, s.z, s.yaw);
+    });
+  }
+  status.textContent = "The room is open.";
+}
+furnish();
+const keys = {};
+addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
+addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
+const stick = document.getElementById("stick");
+const knob = document.getElementById("knob");
+let sticking = false, joyX = 0, joyY = 0;
+function setJoy(e) {
+  const r = stick.getBoundingClientRect();
+  const x = e.clientX - r.left - r.width / 2;
+  const y = e.clientY - r.top - r.height / 2;
+  const m = Math.min(34, Math.hypot(x, y));
+  const a = Math.atan2(y, x);
+  knob.style.left = (34 + Math.cos(a) * m) + "px";
+  knob.style.top = (34 + Math.sin(a) * m) + "px";
+  joyX = Math.cos(a) * (m / 34);
+  joyY = Math.sin(a) * (m / 34);
+}
+function endJoy() { sticking = false; joyX = joyY = 0; knob.style.left = "36px"; knob.style.top = "36px"; }
+stick.addEventListener("pointerdown", (e) => { sticking = true; stick.setPointerCapture(e.pointerId); setJoy(e); });
+stick.addEventListener("pointermove", (e) => { if (sticking) setJoy(e); });
+stick.addEventListener("pointerup", endJoy);
+stick.addEventListener("pointercancel", endJoy);
+let downX = 0, downY = 0;
+renderer.domElement.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
+renderer.domElement.addEventListener("pointerup", (e) => {
+  if (Math.hypot(e.clientX - downX, e.clientY - downY) > 12) return;
+  const ray = new THREE.Raycaster();
+  const mouse = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(frames.map(f => f.mesh))[0];
+  if (!hit) return;
+  const f = frames.find(x => x.mesh === hit.object);
+  if (!f) return;
+  const p = document.getElementById("plaque");
+  p.style.display = "block";
+  p.innerHTML = "<b>" + (f.nft.name || "Oval") + "</b><a href='" + sea(f.nft.id) + "' target='_blank'>View on OpenSea</a>";
+});
+function validAddress(a) { return /^0x[0-9a-fA-F]{40}$/.test(a); }
+function discovered() {
+  const w = window.ethereum;
+  if (!w) return [];
+  if (w.providers) return w.providers;
+  return [w];
+}
+async function connectInjected(provider) {
+  const accounts = await provider.request({ method: "eth_requestAccounts" });
+  if (!accounts[0]) throw new Error("No account.");
+  await enter(accounts[0]);
+}
+async function enter(address) {
+  account = address.toLowerCase();
+  document.getElementById("sheet").classList.remove("on");
+  document.getElementById("connect").textContent = account.slice(0, 6) + "…" + account.slice(-4);
+  status.textContent = "Checking seats…";
+  try {
+    const bal = await rpc("eth_call", [{ to: CONTRACT, data: "0x70a08231" + hexPad(address.slice(2)) }, "latest"]);
+    const count = parseInt(bal, 16);
+    heldAssets = [];
+    for (let i = 0; i < Math.min(count, 50); i++) {
+      const idHex = await rpc("eth_call", [{ to: CONTRACT, data: "0x2f745c59" + hexPad(address.slice(2)) + hexPad(i) }, "latest"]);
+      heldAssets.push(parseInt(idHex, 16));
+    }
+    const isHolder = heldAssets.length > 0;
+    status.textContent = isHolder
+      ? "Holder. You hold " + heldAssets.length + " seat" + (heldAssets.length === 1 ? "" : "s") + "."
+      : "Visitor. Walk the room.";
+    paintClaims();
+    await checkOval();
+  } catch (e) { status.textContent = "Could not read the chain."; }
+}
+async function checkOval() {
+  ovalBalance = 0;
+  const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
+  if (!account || !live) { updateDoor(); return; }
+  try {
+    const bal = await rpc("eth_call", [{ to: OVAL_TOKEN, data: "0x70a08231" + hexPad(account.slice(2)) }, "latest"]);
+    ovalBalance = parseInt(bal, 16) / 1e18;
+  } catch (e) { ovalBalance = 0; }
+  updateDoor();
+  const el = document.getElementById("oval-bal");
+  if (el && document.getElementById("oval").classList.contains("on")) {
+    el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) : "No OVAL on this address.";
+  }
+}
+function claimedKey(addr, id) { return "oval.claimed." + addr + "." + id; }
+function paintClaims() {
+  const list = document.getElementById("claims-list");
+  list.innerHTML = "";
+  document.getElementById("floor-line").textContent = FLOOR;
+  if (!account) { document.getElementById("claims-note").textContent = "Enter to see your seats."; return; }
+  document.getElementById("claims-note").textContent = heldAssets.length ? "Holder. Your seats this week." : "Visitor. No seats on this address.";
+  let total = 0;
+  heldAssets.forEach(id => {
+    const share = Math.round(WEEK / 10000 * (1 + (id % 7) * 0.1));
+    total += share;
+    const row = document.createElement("div");
+    row.className = "asset";
+    const recent = localStorage.getItem(claimedKey(account, id));
+    row.innerHTML = "<div class='meta'><b>Oval " + id + "</b><span class='share'>" + share + " OVAL</span></div>" +
+      (recent ? "<button disabled>Claimed</button>" : "<button>Claim</button>");
+    if (!recent) row.querySelector("button").onclick = () => { localStorage.setItem(claimedKey(account, id), String(Date.now())); paintClaims(); };
+    list.appendChild(row);
+  });
+  document.getElementById("yield-line").textContent = total ? "This week: " + total + " OVAL" : "";
+}
+document.getElementById("buy-floor").onclick = () => window.open(BUY, "_blank");
+document.getElementById("rules-open").onclick = () => document.getElementById("rules").classList.add("on");
+document.getElementById("close-rules").onclick = () => document.getElementById("rules").classList.remove("on");
+document.getElementById("oval-open").onclick = () => {
+  document.getElementById("oval").classList.add("on");
+  const el = document.getElementById("oval-bal");
+  if (!account) { el.textContent = "Enter to see your OVAL."; return; }
+  const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
+  if (!live) { el.textContent = "The coin is not yet in the room."; return; }
+  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) : "Checking…";
+  checkOval();
+};
+document.getElementById("close-oval").onclick = () => document.getElementById("oval").classList.remove("on");
+document.getElementById("claims-enter").onclick = () => { document.getElementById("claims").classList.remove("on"); document.getElementById("sheet").classList.add("on"); };
+document.getElementById("claims-open").onclick = () => { document.getElementById("claims").classList.add("on"); paintClaims(); };
+document.getElementById("claim-all").onclick = () => {
+  if (!account) return;
+  heldAssets.forEach(id => localStorage.setItem(claimedKey(account, id), String(Date.now())));
+  paintClaims();
+};
+document.getElementById("close-claims").onclick = () => document.getElementById("claims").classList.remove("on");
+document.getElementById("connect").onclick = () => document.getElementById("sheet").classList.add("on");
+document.getElementById("close-sheet").onclick = () => document.getElementById("sheet").classList.remove("on");
+document.getElementById("use-here").onclick = async () => { const list = discovered(); if (!list[0]) { document.getElementById("sheet-note").textContent = "No wallet in this browser. Paste the address."; return; } try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Refused."; } };
+document.getElementById("use-addr").onclick = async () => { const address = document.getElementById("addr").value.trim(); if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full 0x address."; return; } await enter(address); };
+addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+function animate() {
+  requestAnimationFrame(animate);
+  const speed = 0.08;
+  if (keys["w"] || keys["arrowup"] || joyY < -0.2) camera.position.z -= speed * Math.cos(camera.rotation.y);
+  if (keys["s"] || keys["arrowdown"] || joyY > 0.2) camera.position.z += speed * Math.cos(camera.rotation.y);
+  if (keys["a"] || keys["arrowleft"] || joyX < -0.2) camera.position.x -= speed;
+  if (keys["d"] || keys["arrowright"] || joyX > 0.2) camera.position.x += speed;
+  camera.position.x = Math.max(-15, Math.min(15, camera.position.x));
+  camera.position.z = Math.max(-70, Math.min(18, camera.position.z));
+  const onStair = camera.position.z < 8.4 && camera.position.z > -1 && Math.abs(camera.position.x - 4.2) < 1.3;
+  const onDeck = camera.position.x > 3.2 && camera.position.z < -11 && camera.position.z > -60;
+  let stand = 1.6;
+  if (onStair) stand = 1.6 + ((8.4 - camera.position.z) / 9.4) * 3.6;
+  else if (onDeck) stand = 6.8;
+  camera.position.y = stand;
+  walkers.forEach(w => {
+    if (w.wait > 0) { w.wait -= 0.016; return; }
+    const dx = w.tx - w.mesh.position.x, dz = w.tz - w.mesh.position.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.2) { w.wait = 1 + Math.random() * 3; const s = spot(); w.tx = s[0]; w.tz = s[1]; w.face = s[2]; faceYaw(w.mesh, w.face, w.mesh.position.z); return; }
+    w.mesh.position.x += (dx / dist) * 0.012;
+    w.mesh.position.z += (dz / dist) * 0.012;
+    faceYaw(w.mesh, w.tx, w.tz);
+  });
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
