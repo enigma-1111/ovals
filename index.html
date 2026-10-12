@@ -318,21 +318,34 @@ function placeFlat(nft, x, z) {
 }
 function placePillar(nft, x, z) {
   const mat = new THREE.MeshBasicMaterial({ color: 0x222 });
-  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), mat);
-  art.position.set(x, 2.7, z + 0.82);
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.05), mat);
+  art.position.set(x, 2.7, z);
+  art.lookAt(0, 2.7, z);
   scene.add(art);
   frames.push({ mesh: art, nft });
   if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 }
 async function furnish() {
   const ids = [];
-  for (let id = 1; id <= 335; id++) ids.push(id);
+  for (let id = 1; id <= 500; id++) ids.push(id);
   const slots = [];
-  for (let z = 18; z >= -70; z -= 1.7) {
+  for (let z = 18; z >= -70; z -= 1.5) {
     slots.push([-15.4, z]);
     slots.push([15.4, z]);
   }
-  pillars.forEach(([x, z]) => { slots.push([x, z, "pillar"]); slots.push([x, z + 0.01, "pillar"]); });
+  // gray partitions
+  for (let x = -12.4; x <= -7.6; x += 1.6) { slots.push([x, 8.2]); slots.push([x, 7.8]); }
+  for (let x = 7.6; x <= 12.4; x += 1.6) { slots.push([x, -5.8]); slots.push([x, -6.2]); }
+  for (let z = -25.4; z <= -18.6; z += 1.6) { slots.push([-6.2, z]); slots.push([-5.8, z]); }
+  for (let z = -41.4; z <= -34.6; z += 1.6) { slots.push([5.8, z]); slots.push([6.2, z]); }
+  for (let x = -3.2; x <= 3.2; x += 1.6) { slots.push([x, -51.8]); slots.push([x, -52.2]); }
+  for (let z = -65; z <= -59; z += 1.6) { slots.push([-8.2, z]); slots.push([-7.8, z]); }
+  pillars.forEach(([x, z]) => {
+    slots.push([x, z + 0.82, "pillar"]);
+    slots.push([x, z - 0.82, "pillar"]);
+    slots.push([x + 0.82, z, "pillar"]);
+    slots.push([x - 0.82, z, "pillar"]);
+  });
   let placed = 0;
   for (let i = 0; i < ids.length; i += 8) {
     const batch = ids.slice(i, i + 8);
