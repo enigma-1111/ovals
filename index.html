@@ -115,16 +115,16 @@ const status = document.getElementById("status");
 if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
 const THREE = window.THREE;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x5a2a32);
-scene.fog = new THREE.Fog(0x5a2a32, 40, 100);
+scene.background = new THREE.Color(0x07070a);
+scene.fog = new THREE.Fog(0x07070a, 18, 70);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 140);
 camera.position.set(0, 1.6, 16);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
-scene.add(new THREE.AmbientLight(0xfff4e6, 0.7));
-const sky = new THREE.DirectionalLight(0xfff8f0, 1.1);
+scene.add(new THREE.AmbientLight(0x8899aa, 0.22));
+const sky = new THREE.DirectionalLight(0xc8d4e8, 0.35);
 sky.position.set(0, 14, -10);
 scene.add(sky);
 const ceilingLight = new THREE.DirectionalLight(0xe8f4ff, 0.4);
@@ -136,21 +136,19 @@ function mesh(geo, color, x, y, z) {
   scene.add(m);
   return m;
 }
-// Wood floor with plank variation
-const floorColors = [0xc4a574, 0xb89460, 0xd0b080, 0xa88458];
-for (let i = -8; i <= 8; i++) {
-  const col = floorColors[Math.abs(i) % floorColors.length];
-  mesh(new THREE.BoxGeometry(1.1, 0.18, 70), col, i * 1.1, 0, -8);
-}
+// Dark gallery floor
+const floor = mesh(new THREE.BoxGeometry(18, 0.2, 70), 0x101014, 0, 0, -8);
+floor.material = new THREE.MeshLambertMaterial({ color: 0x101014 });
+for (let i = -8; i <= 8; i++) mesh(new THREE.BoxGeometry(0.02, 0.01, 70), 0x1c1c24, i, 0.11, -8);
 // Baseboard
 mesh(new THREE.BoxGeometry(18.2, 0.22, 70), 0x3a2a20, 0, 0.12, -8);
 // Gallery walls - deep burgundy with panels
-mesh(new THREE.BoxGeometry(0.35, 8.6, 70), 0x7a2a38, -8.75, 4.4, -8);
-mesh(new THREE.BoxGeometry(0.35, 8.6, 70), 0x7a2a38, 8.75, 4.4, -8);
+mesh(new THREE.BoxGeometry(0.35, 8.6, 70), 0x121218, -8.75, 4.4, -8);
+mesh(new THREE.BoxGeometry(0.35, 8.6, 70), 0x121218, 8.75, 4.4, -8);
 // Wall panels
 for (let z = 12; z >= -32; z -= 8) {
-  mesh(new THREE.BoxGeometry(0.08, 6.2, 5.5), 0x6a2430, -8.5, 4.2, z);
-  mesh(new THREE.BoxGeometry(0.08, 6.2, 5.5), 0x6a2430, 8.5, 4.2, z);
+  mesh(new THREE.BoxGeometry(0.08, 6.2, 5.5), 0x16161c, -8.5, 4.2, z);
+  mesh(new THREE.BoxGeometry(0.08, 6.2, 5.5), 0x16161c, 8.5, 4.2, z);
 }
 // Crown molding and ceiling structure
 mesh(new THREE.BoxGeometry(18, 0.18, 70), 0x2a181c, 0, 9.0, -8);
@@ -172,7 +170,7 @@ for (let z = 11; z >= -33; z -= 6) mesh(new THREE.BoxGeometry(0.14, 8.8, 0.14), 
 // Museum benches - wooden with cushion, facing the walls
 function bench(x, z, face) {
   mesh(new THREE.BoxGeometry(2.4, 0.08, 0.55), 0x5a4030, x, 0.42, z);
-  mesh(new THREE.BoxGeometry(2.2, 0.06, 0.42), 0x8a3a42, x, 0.48, z);
+  mesh(new THREE.BoxGeometry(2.2, 0.06, 0.42), 0x1a1a22, x, 0.48, z);
   mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x - 1.0, 0.2, z - 0.18);
   mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x + 1.0, 0.2, z - 0.18);
   mesh(new THREE.BoxGeometry(0.1, 0.4, 0.1), 0x3a2a20, x - 1.0, 0.2, z + 0.18);
@@ -205,7 +203,7 @@ function statue(x, z) {
   mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.7, 16), 0xcfc6b8, x, 0.52, z);
   mesh(new THREE.SphereGeometry(0.22, 16, 12), stone, x, 1.55, z);
   mesh(new THREE.CylinderGeometry(0.16, 0.22, 0.7, 12), stone, x, 1.05, z);
-  const lamp = new THREE.PointLight(0xfff4e2, 0.35, 5);
+  const lamp = new THREE.PointLight(0xfff4e2, 0.15, 4);
   lamp.position.set(x, 2.4, z);
   scene.add(lamp);
 }
@@ -328,7 +326,7 @@ function hang(nft, x, z) {
   g.position.set(x, 1.7 + scale * 0.6, z);
   g.lookAt(0, 2.1, z);
   scene.add(g);
-  const bulb = new THREE.PointLight(0xfff6e8, 0.9, 7);
+  const bulb = new THREE.PointLight(0xfff6e8, 2.2, 10);
   bulb.position.set(x * 0.65, 4.4, z);
   scene.add(bulb);
   frames.push({ mesh: art, nft });
