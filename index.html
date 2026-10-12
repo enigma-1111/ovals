@@ -202,34 +202,37 @@ function spot() {
   const wall = Math.random() < 0.5 ? -1 : 1;
   return [wall * (4.6 + Math.random() * 1.4), 14 - Math.random() * 46, wall * 7.4];
 }
+function faceYaw(mesh, x, z) {
+  mesh.rotation.x = 0;
+  mesh.rotation.z = 0;
+  mesh.rotation.y = Math.atan2(x - mesh.position.x, z - mesh.position.z);
+}
 function person(x, z, color) {
   const g = new THREE.Group();
   const cloth = new THREE.MeshLambertMaterial({ color });
   const skin = new THREE.MeshLambertMaterial({ color: 0xe2c2a4 });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.7, 0.22), cloth);
-  body.position.y = 1.05;
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.12, 8), skin);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.78, 0.24), cloth);
+  body.position.y = 1.02;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 8), skin);
   neck.position.y = 1.46;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), skin);
-  head.position.y = 1.66;
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
-  hair.position.y = 1.74;
-  hair.scale.y = 0.6;
-  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.55, 8), cloth);
-  armL.position.set(-0.26, 1.05, 0);
-  armL.rotation.z = 0.15;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 12), skin);
+  head.position.y = 1.64;
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.155, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
+  hair.position.y = 1.72;
+  hair.scale.y = 0.55;
+  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.5, 8), cloth);
+  armL.position.set(-0.28, 1.02, 0);
   const armR = armL.clone();
-  armR.position.x = 0.26;
-  armR.rotation.z = -0.15;
-  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.7, 8), cloth);
-  legL.position.set(-0.1, 0.35, 0);
+  armR.position.x = 0.28;
+  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.07, 0.62, 8), cloth);
+  legL.position.set(-0.1, 0.32, 0);
   const legR = legL.clone();
   legR.position.x = 0.1;
   g.add(body, neck, head, hair, armL, armR, legL, legR);
   g.position.set(x, 0, z);
   scene.add(g);
   const s = spot();
-  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 1 + Math.random() * 2 });
+  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 1 + Math.random() * 2, phase: Math.random() * 6 });
   return g;
 }
 person(-5.2, 11, 0x8a3a32);
@@ -290,12 +293,9 @@ function hang(nft, x, z) {
   const tex = new THREE.CanvasTexture(canvas);
   labelMat.map = tex; labelMat.needsUpdate = true;
   g.add(frame, matte, art, label);
-  g.position.set(x, 1.7 + scale * 0.6, z);
-  g.lookAt(0, 2.1, z);
+  g.position.set(x, 1.55, z);
+  g.lookAt(0, 1.55, z);
   scene.add(g);
-  const bulb = new THREE.PointLight(0xfff6e8, 2.2, 10);
-  bulb.position.set(x * 0.65, 4.4, z);
-  scene.add(bulb);
   frames.push({ mesh: art, nft });
   if (nft.image) loader.load(nft.image, (tex) => { artMat.map = tex; artMat.color.set(0xffffff); artMat.needsUpdate = true; });
 }
@@ -325,15 +325,26 @@ function placePillar(nft, x, z) {
   if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 }
 async function furnish() {
-  const wallL = [1,2,3,4,5,6,7,8,9,10];
-  const wallR = [11,12,13,14,15,16,17,18,19,20];
-  const flats = [21,22,23,24,25,26,27,28];
-  const cols = [29,30,31,32,33,34,35];
-  for (let i = 0; i < wallL.length; i++) { try { hang(await loadToken(wallL[i]), -15.2, 16 - i * 8); } catch (e) {} }
-  for (let i = 0; i < wallR.length; i++) { try { hang(await loadToken(wallR[i]), 15.2, 12 - i * 8); } catch (e) {} }
-  const spots = [[0, 6], [-6, -4], [6, -14], [-4, -28], [5, -40], [0, -50], [-7, -62], [7, -66]];
-  for (let i = 0; i < flats.length; i++) { try { placeFlat(await loadToken(flats[i]), spots[i][0], spots[i][1]); } catch (e) {} }
-  for (let i = 0; i < cols.length; i++) { try { placePillar(await loadToken(cols[i]), pillars[i][0], pillars[i][1]); } catch (e) {} }
+  const ids = [];
+  for (let id = 1; id <= 335; id++) ids.push(id);
+  const slots = [];
+  for (let z = 18; z >= -70; z -= 1.7) {
+    slots.push([-15.4, z]);
+    slots.push([15.4, z]);
+  }
+  pillars.forEach(([x, z]) => { slots.push([x, z, "pillar"]); slots.push([x, z + 0.01, "pillar"]); });
+  let placed = 0;
+  for (let i = 0; i < ids.length; i += 8) {
+    const batch = ids.slice(i, i + 8);
+    const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
+    tokens.forEach((nft) => {
+      if (!nft || placed >= slots.length) return;
+      const slot = slots[placed++];
+      if (slot[2] === "pillar") placePillar(nft, slot[0], slot[1]);
+      else hang(nft, slot[0], slot[1]);
+    });
+    status.textContent = "Hanging " + placed + " ovals";
+  }
   status.textContent = "Walk. Tap an oval.";
 }
 furnish();
@@ -571,20 +582,22 @@ function tick() {
   renderer.render(scene, camera);
   const t = clock.elapsedTime;
   walkers.forEach((w) => {
+    w.phase += dt;
     if (w.wait > 0) {
       w.wait -= dt;
-      w.mesh.lookAt(w.face, 1.5, w.mesh.position.z);
+      faceYaw(w.mesh, w.face, w.mesh.position.z);
       if (w.wait <= 0) { const s = spot(); w.tx = s[0]; w.tz = s[1]; w.face = s[2]; }
       return;
     }
     const dx = w.tx - w.mesh.position.x;
     const dz = w.tz - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.35) { w.wait = 6 + Math.random() * 8; return; }
-    const step = (0.45 + Math.random() * 0.35) * dt;
+    if (dist < 0.4) { w.wait = 5 + Math.random() * 7; return; }
+    const step = 0.7 * dt;
     w.mesh.position.x += dx / dist * step;
     w.mesh.position.z += dz / dist * step;
-    w.mesh.lookAt(w.mesh.position.x + dx, 0, w.mesh.position.z + dz);
+    faceYaw(w.mesh, w.tx, w.tz);
+    w.mesh.position.y = Math.abs(Math.sin(w.phase * 6)) * 0.03;
   });
   requestAnimationFrame(tick);
 }
