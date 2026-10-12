@@ -143,21 +143,36 @@ mesh(new THREE.BoxGeometry(4.2, 4.6, 0.16), 0xf7f7f9, -6.4, 2.3, 4);
 mesh(new THREE.BoxGeometry(4.2, 4.6, 0.16), 0xf7f7f9, 6.4, 2.3, -10);
 mesh(new THREE.BoxGeometry(0.16, 4.6, 5), 0xf7f7f9, -4.2, 2.3, -20);
 mesh(new THREE.BoxGeometry(0.16, 4.6, 5), 0xf7f7f9, 4.2, 2.3, -28);
-function pillar(x, z) { mesh(new THREE.BoxGeometry(1.6, 5.4, 1.6), 0x111114, x, 2.7, z); }
-pillar(0, 2);
-pillar(0, -16);
-pillar(-6.5, -8);
-pillar(6.5, -24);
+function pillar(x, z, face) {
+  mesh(new THREE.BoxGeometry(1.5, 5.6, 1.5), 0x111114, x, 2.8, z);
+  const plate = mesh(new THREE.BoxGeometry(1.15, 1.15, 0.04), face, x, 2.6, z + 0.76);
+  mesh(new THREE.BoxGeometry(0.7, 0.7, 0.02), 0xf4f4f6, x, 2.6, z + 0.8);
+}
+pillar(0, 6, 0xf0b429);
+pillar(0, -10, 0x2f9e6b);
+pillar(-6.2, 0, 0xe23b4a);
+pillar(6.2, -6, 0x3a7bd5);
+pillar(-5.5, -18, 0xd4a020);
+pillar(5.5, -22, 0x8a3a6a);
+pillar(0, -28, 0x111114);
 function rug(x, z, color, w) {
-  const m = mesh(new THREE.BoxGeometry(w, 0.04, w), color, x, 0.14, z);
-  m.rotation.y = 0.08;
+  const m = mesh(new THREE.BoxGeometry(w, 0.03, w), color, x, 0.13, z);
+  m.rotation.y = (x + z) * 0.02;
+  const ring = mesh(new THREE.CylinderGeometry(w * 0.32, w * 0.32, 0.02, 24), 0xf7f4ea, x, 0.16, z);
+  ring.material = new THREE.MeshLambertMaterial({ color: 0xf7f4ea });
   return m;
 }
-rug(0, 8, 0xc43a4a, 3.4);
-rug(-4.5, -2, 0x2a8a4a, 2.6);
-rug(5, -12, 0x1a6a8a, 2.8);
-rug(-3, -22, 0xd4a020, 3.1);
-rug(4.5, -30, 0x8a3a6a, 2.4);
+rug(0, 10, 0xc43a4a, 3.6);
+rug(-5, 2, 0x2a8a4a, 2.8);
+rug(5.2, -4, 0x1a6a8a, 2.6);
+rug(-3.5, -14, 0xd4a020, 3.2);
+rug(4.2, -18, 0x8a3a6a, 2.5);
+rug(0, -24, 0x3a7bd5, 3.0);
+rug(-6, -30, 0xe23b4a, 2.4);
+rug(6, -34, 0x2f9e6b, 2.7);
+mesh(new THREE.BoxGeometry(5, 4.2, 0.14), 0xf7f7f9, -7.2, 2.1, -4);
+mesh(new THREE.BoxGeometry(5, 4.2, 0.14), 0xf7f7f9, 7.2, 2.1, -16);
+mesh(new THREE.BoxGeometry(0.14, 4.2, 6), 0xf7f7f9, -3.5, 2.1, -26);
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
@@ -315,8 +330,8 @@ async function fill(ids, side, start) {
     try { hang(await loadToken(ids[i]), side, start - i * 5.2); } catch (e) {}
   }
 }
-fill([1,2,3,4,5,6,7,8], -7.4, 12).then(() => status.textContent = "The portraits are up");
-fill([9,10,11,12,13,14,15,16], 7.4, 12);
+fill([1,2,3,4,5,6,7,8,17,18], -9.2, 14).then(() => status.textContent = "The portraits are up");
+fill([9,10,11,12,13,14,15,16,19,20], 9.2, 14);
 const keys = {};
 addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
