@@ -243,28 +243,28 @@ function person(x, z, color) {
   const g = new THREE.Group();
   const cloth = new THREE.MeshLambertMaterial({ color });
   const skin = new THREE.MeshLambertMaterial({ color: 0xe2c2a4 });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.78, 0.24), cloth);
-  body.position.y = 1.02;
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 8), skin);
-  neck.position.y = 1.46;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 12), skin);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.72, 0.22), cloth);
+  body.position.y = 1.08;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.08, 8), skin);
+  neck.position.y = 1.48;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), skin);
   head.position.y = 1.64;
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.155, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.145, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
   hair.position.y = 1.72;
-  hair.scale.y = 0.55;
-  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.5, 8), cloth);
-  armL.position.set(-0.28, 1.02, 0);
+  hair.scale.y = 0.5;
+  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.48, 8), cloth);
+  armL.position.set(-0.26, 1.05, 0);
   const armR = armL.clone();
-  armR.position.x = 0.28;
-  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.07, 0.62, 8), cloth);
-  legL.position.set(-0.1, 0.32, 0);
+  armR.position.x = 0.26;
+  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.065, 0.58, 8), cloth);
+  legL.position.set(-0.09, 0.36, 0);
   const legR = legL.clone();
-  legR.position.x = 0.1;
+  legR.position.x = 0.09;
   g.add(body, neck, head, hair, armL, armR, legL, legR);
   g.position.set(x, 0, z);
   scene.add(g);
   const s = spot();
-  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 1 + Math.random() * 2, phase: Math.random() * 6 });
+  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.55 + Math.random() * 0.35, armL, armR, legL, legR, body });
   return g;
 }
 person(-5.2, 11, 0x8a3a32);
@@ -414,7 +414,18 @@ stick.addEventListener("pointermove", (e) => { if (sticking) setJoy(e); });
 stick.addEventListener("pointerup", endJoy);
 stick.addEventListener("pointercancel", endJoy);
 let downX = 0, downY = 0;
-renderer.domElement.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
+let yaw = 0, pitch = 0, looking = false, lastX = 0, lastY = 0;
+renderer.domElement.addEventListener("pointerdown", (e) => {
+  downX = e.clientX; downY = e.clientY; lastX = e.clientX; lastY = e.clientY;
+  looking = e.clientX > innerWidth * 0.36;
+});
+renderer.domElement.addEventListener("pointermove", (e) => {
+  if (!looking) return;
+  yaw -= (e.clientX - lastX) * 0.004;
+  pitch = Math.max(-0.4, Math.min(0.35, pitch - (e.clientY - lastY) * 0.003));
+  lastX = e.clientX; lastY = e.clientY;
+});
+renderer.domElement.addEventListener("pointerup", () => looking = false);
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (Math.hypot(e.clientX - downX, e.clientY - downY) > 12) return;
   const ray = new THREE.Raycaster();
@@ -522,29 +533,73 @@ document.getElementById("close-sheet").onclick = () => document.getElementById("
 document.getElementById("use-here").onclick = async () => { const list = discovered(); if (!list[0]) { document.getElementById("sheet-note").textContent = "No wallet in this browser. Paste the address."; return; } try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Refused."; } };
 document.getElementById("use-addr").onclick = async () => { const address = document.getElementById("addr").value.trim(); if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full 0x address."; return; } await enter(address); };
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+let bob = 0, walkAmt = 0;
+const blocks = [[-16.8,-20,0.7,55],[16.8,-20,0.7,55],[0,-74,17,0.6],[-10,8,3.2,0.5],[10,-6,3.2,0.5],[-6,-22,0.5,4.2],[6,-38,0.5,4.2],[0,-52,4.2,0.5],[-8,-62,0.5,3.6]];
+[[0,10],[-8,0],[8,-8],[0,-24],[-9,-36],[9,-44],[0,-58]].forEach(([x,z]) => blocks.push([x,z,1.05,1.05]));
+function blocked(x, z) {
+  for (const b of blocks) if (Math.abs(x - b[0]) < b[2] + 0.4 && Math.abs(z - b[1]) < b[3] + 0.4) return true;
+  return false;
+}
 function animate() {
   requestAnimationFrame(animate);
-  const speed = 0.08;
-  if (keys["w"] || keys["arrowup"] || joyY < -0.2) camera.position.z -= speed * Math.cos(camera.rotation.y);
-  if (keys["s"] || keys["arrowdown"] || joyY > 0.2) camera.position.z += speed * Math.cos(camera.rotation.y);
-  if (keys["a"] || keys["arrowleft"] || joyX < -0.2) camera.position.x -= speed;
-  if (keys["d"] || keys["arrowright"] || joyX > 0.2) camera.position.x += speed;
-  camera.position.x = Math.max(-15, Math.min(15, camera.position.x));
-  camera.position.z = Math.max(-70, Math.min(18, camera.position.z));
+  const dt = 0.016;
+  let mx = (keys["d"] || keys["arrowright"] ? 1 : 0) - (keys["a"] || keys["arrowleft"] ? 1 : 0);
+  let mz = (keys["s"] || keys["arrowdown"] ? 1 : 0) - (keys["w"] || keys["arrowup"] ? 1 : 0);
+  mx += joyX; mz += joyY;
+  const moving = Math.hypot(mx, mz) > 0.08;
+  if (moving) {
+    const len = Math.hypot(mx, mz);
+    mx /= len; mz /= len;
+    const sx = mx * Math.cos(yaw) + mz * Math.sin(yaw);
+    const sz = -mx * Math.sin(yaw) + mz * Math.cos(yaw);
+    const step = 2.4 * dt;
+    const nx = camera.position.x + sx * step;
+    const nz = camera.position.z + sz * step;
+    if (!blocked(nx, camera.position.z)) camera.position.x = nx;
+    if (!blocked(camera.position.x, nz)) camera.position.z = nz;
+    bob += dt * 8;
+    walkAmt = Math.min(1, walkAmt + dt * 4);
+  } else {
+    walkAmt = Math.max(0, walkAmt - dt * 3);
+  }
+  camera.position.x = Math.max(-15.2, Math.min(15.2, camera.position.x));
+  camera.position.z = Math.max(-71, Math.min(20, camera.position.z));
   const onStair = camera.position.z < 8.4 && camera.position.z > -1 && Math.abs(camera.position.x - 4.2) < 1.3;
   const onDeck = camera.position.x > 3.2 && camera.position.z < -11 && camera.position.z > -60;
   let stand = 1.6;
   if (onStair) stand = 1.6 + ((8.4 - camera.position.z) / 9.4) * 3.6;
   else if (onDeck) stand = 6.8;
-  camera.position.y = stand;
+  camera.position.y = stand + Math.sin(bob) * 0.035 * walkAmt;
+  camera.rotation.order = "YXZ";
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
   walkers.forEach(w => {
-    if (w.wait > 0) { w.wait -= 0.016; return; }
+    w.phase += dt;
+    if (w.wait > 0) {
+      w.wait -= dt;
+      faceYaw(w.mesh, w.face, w.mesh.position.z);
+      const sway = Math.sin(w.phase * 1.4) * 0.04;
+      w.body.rotation.x = sway * 0.3;
+      w.armL.rotation.x = sway;
+      w.armR.rotation.x = -sway;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      if (w.wait <= 0) { const s = spot(); w.tx = s[0]; w.tz = s[1]; w.face = s[2]; }
+      return;
+    }
     const dx = w.tx - w.mesh.position.x, dz = w.tz - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.2) { w.wait = 1 + Math.random() * 3; const s = spot(); w.tx = s[0]; w.tz = s[1]; w.face = s[2]; faceYaw(w.mesh, w.face, w.mesh.position.z); return; }
-    w.mesh.position.x += (dx / dist) * 0.012;
-    w.mesh.position.z += (dz / dist) * 0.012;
+    if (dist < 0.45) { w.wait = 4 + Math.random() * 6; return; }
+    const step = w.speed * dt;
+    w.mesh.position.x += dx / dist * step;
+    w.mesh.position.z += dz / dist * step;
     faceYaw(w.mesh, w.tx, w.tz);
+    const swing = Math.sin(w.phase * 7) * 0.45;
+    w.legL.rotation.x = swing;
+    w.legR.rotation.x = -swing;
+    w.armL.rotation.x = -swing * 0.7;
+    w.armR.rotation.x = swing * 0.7;
+    w.mesh.position.y = Math.abs(Math.sin(w.phase * 7)) * 0.02;
   });
   renderer.render(scene, camera);
 }
