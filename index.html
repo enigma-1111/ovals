@@ -26,7 +26,7 @@
   .asset .share { color:#efe4d2; }
   .asset button { width:auto; margin-top:6px; padding:6px 12px; font-size:12px; }
   #status { position:fixed; top:calc(96px + env(safe-area-inset-top)); left:18px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; pointer-events:none; }
-  #plaque { position:fixed; left:50%; bottom:calc(118px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
+  #plaque a { color:#2b2116; }\n  #plaque { position:fixed; left:50%; bottom:calc(118px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:10px 14px; display:none; z-index:3; }
   #plaque b { display:block; }
   .pad { position:fixed; left:14px; bottom:calc(22px + env(safe-area-inset-bottom)); display:grid; grid-template-columns:48px 48px 48px; gap:6px; z-index:4; pointer-events:auto; }
   .pad button { width:48px; height:48px; border-radius:12px; touch-action:manipulation; }
@@ -105,6 +105,7 @@
 const CONTRACT = "0xb8611673d94f3846c619e2a146b84e793f93f931";
 const CHAIN = "0x1237";
 const RPC = "https://rpc.mainnet.chain.robinhood.com";
+function sea(id) { return "https://opensea.io/item/robinhood/" + CONTRACT + "/" + id; }
 const BUY = "https://opensea.io/collection/oval-room?search%5BsortBy%5D=PRICE&search%5BsortAscending%5D=true";
 const FLOOR = "0.06 USDG";
 const WEEK = 100000;
@@ -133,46 +134,21 @@ function mesh(geo, color, x, y, z) {
   scene.add(m);
   return m;
 }
-mesh(new THREE.BoxGeometry(22, 0.2, 70), 0xf2f2f4, 0, 0, -8);
-mesh(new THREE.BoxGeometry(22, 0.2, 70), 0xf4f4f6, 0, 8.6, -8);
-mesh(new THREE.BoxGeometry(0.3, 8.4, 70), 0xe8e8ec, -10.8, 4.2, -8);
-mesh(new THREE.BoxGeometry(0.3, 8.4, 70), 0xe8e8ec, 10.8, 4.2, -8);
-mesh(new THREE.BoxGeometry(22, 8.4, 0.3), 0xe8e8ec, 0, 4.2, -43);
-for (let z = 14; z >= -34; z -= 8) mesh(new THREE.BoxGeometry(16, 0.04, 0.06), 0xffffff, 0, 8.4, z);
-mesh(new THREE.BoxGeometry(4.2, 4.6, 0.16), 0xf7f7f9, -6.4, 2.3, 4);
-mesh(new THREE.BoxGeometry(4.2, 4.6, 0.16), 0xf7f7f9, 6.4, 2.3, -10);
-mesh(new THREE.BoxGeometry(0.16, 4.6, 5), 0xf7f7f9, -4.2, 2.3, -20);
-mesh(new THREE.BoxGeometry(0.16, 4.6, 5), 0xf7f7f9, 4.2, 2.3, -28);
-function pillar(x, z, face) {
-  mesh(new THREE.BoxGeometry(1.5, 5.6, 1.5), 0x111114, x, 2.8, z);
-  const plate = mesh(new THREE.BoxGeometry(1.15, 1.15, 0.04), face, x, 2.6, z + 0.76);
-  mesh(new THREE.BoxGeometry(0.7, 0.7, 0.02), 0xf4f4f6, x, 2.6, z + 0.8);
-}
-pillar(0, 6, 0xf0b429);
-pillar(0, -10, 0x2f9e6b);
-pillar(-6.2, 0, 0xe23b4a);
-pillar(6.2, -6, 0x3a7bd5);
-pillar(-5.5, -18, 0xd4a020);
-pillar(5.5, -22, 0x8a3a6a);
-pillar(0, -28, 0x111114);
-function rug(x, z, color, w) {
-  const m = mesh(new THREE.BoxGeometry(w, 0.03, w), color, x, 0.13, z);
-  m.rotation.y = (x + z) * 0.02;
-  const ring = mesh(new THREE.CylinderGeometry(w * 0.32, w * 0.32, 0.02, 24), 0xf7f4ea, x, 0.16, z);
-  ring.material = new THREE.MeshLambertMaterial({ color: 0xf7f4ea });
-  return m;
-}
-rug(0, 10, 0xc43a4a, 3.6);
-rug(-5, 2, 0x2a8a4a, 2.8);
-rug(5.2, -4, 0x1a6a8a, 2.6);
-rug(-3.5, -14, 0xd4a020, 3.2);
-rug(4.2, -18, 0x8a3a6a, 2.5);
-rug(0, -24, 0x3a7bd5, 3.0);
-rug(-6, -30, 0xe23b4a, 2.4);
-rug(6, -34, 0x2f9e6b, 2.7);
-mesh(new THREE.BoxGeometry(5, 4.2, 0.14), 0xf7f7f9, -7.2, 2.1, -4);
-mesh(new THREE.BoxGeometry(5, 4.2, 0.14), 0xf7f7f9, 7.2, 2.1, -16);
-mesh(new THREE.BoxGeometry(0.14, 4.2, 6), 0xf7f7f9, -3.5, 2.1, -26);
+mesh(new THREE.BoxGeometry(34, 0.2, 110), 0xf2f2f4, 0, 0, -20);
+mesh(new THREE.BoxGeometry(34, 0.2, 110), 0xf4f4f6, 0, 8.6, -20);
+mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0xe8e8ec, -16.8, 4.2, -20);
+mesh(new THREE.BoxGeometry(0.3, 8.4, 110), 0xe8e8ec, 16.8, 4.2, -20);
+mesh(new THREE.BoxGeometry(34, 8.4, 0.3), 0xe8e8ec, 0, 4.2, -74);
+for (let z = 18; z >= -68; z -= 10) mesh(new THREE.BoxGeometry(28, 0.04, 0.06), 0xffffff, 0, 8.4, z);
+mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xf7f7f9, -10, 2.4, 8);
+mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xf7f7f9, 10, 2.4, -6);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xf7f7f9, -6, 2.4, -22);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xf7f7f9, 6, 2.4, -38);
+mesh(new THREE.BoxGeometry(8, 4.8, 0.16), 0xf7f7f9, 0, 2.4, -52);
+mesh(new THREE.BoxGeometry(0.16, 4.8, 7), 0xf7f7f9, -8, 2.4, -62);
+function pillar(x, z) { return mesh(new THREE.BoxGeometry(1.6, 5.8, 1.6), 0x111114, x, 2.9, z); }
+const pillars = [[0, 10], [-8, 0], [8, -8], [0, -24], [-9, -36], [9, -44], [0, -58]];
+pillars.forEach(([x, z]) => pillar(x, z));
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
@@ -330,8 +306,39 @@ async function fill(ids, side, start) {
     try { hang(await loadToken(ids[i]), side, start - i * 5.2); } catch (e) {}
   }
 }
-fill([1,2,3,4,5,6,7,8,17,18], -9.2, 14).then(() => status.textContent = "The portraits are up");
-fill([9,10,11,12,13,14,15,16,19,20], 9.2, 14);
+function placeFlat(nft, x, z) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color: 0x222 });
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.6), mat);
+  art.rotation.x = -Math.PI / 2;
+  art.position.y = 0.16;
+  g.add(art);
+  g.position.set(x, 0, z);
+  scene.add(g);
+  frames.push({ mesh: art, nft });
+  if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
+}
+function placePillar(nft, x, z) {
+  const mat = new THREE.MeshBasicMaterial({ color: 0x222 });
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), mat);
+  art.position.set(x, 2.7, z + 0.82);
+  scene.add(art);
+  frames.push({ mesh: art, nft });
+  if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
+}
+async function furnish() {
+  const wallL = [1,2,3,4,5,6,7,8,9,10];
+  const wallR = [11,12,13,14,15,16,17,18,19,20];
+  const flats = [21,22,23,24,25,26,27,28];
+  const cols = [29,30,31,32,33,34,35];
+  for (let i = 0; i < wallL.length; i++) { try { hang(await loadToken(wallL[i]), -15.2, 16 - i * 8); } catch (e) {} }
+  for (let i = 0; i < wallR.length; i++) { try { hang(await loadToken(wallR[i]), 15.2, 12 - i * 8); } catch (e) {} }
+  const spots = [[0, 6], [-6, -4], [6, -14], [-4, -28], [5, -40], [0, -50], [-7, -62], [7, -66]];
+  for (let i = 0; i < flats.length; i++) { try { placeFlat(await loadToken(flats[i]), spots[i][0], spots[i][1]); } catch (e) {} }
+  for (let i = 0; i < cols.length; i++) { try { placePillar(await loadToken(cols[i]), pillars[i][0], pillars[i][1]); } catch (e) {} }
+  status.textContent = "Walk. Tap an oval.";
+}
+furnish();
 const keys = {};
 addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
@@ -360,7 +367,8 @@ renderer.domElement.addEventListener("click", (e) => {
   if (!hit) { box.style.display = "none"; return; }
   const nft = frames.find(f => f.mesh === hit.object).nft;
   box.style.display = "block";
-  box.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>${[nft.year, nft.method].filter(Boolean).join(" · ")}<br>This seat earns OVAL.`;
+  const traits = [nft.year && ("Year " + nft.year), nft.method, nft.gaze, nft.epoch].filter(Boolean).join(" · ");
+  box.innerHTML = `<b>${nft.name || ("Oval " + nft.id)}</b>Seat ${nft.id}<br>${traits || "Portrait"}<br><a href="${sea(nft.id)}" target="_blank" rel="noopener">Open on OpenSea</a>`;
 });
 function awardFor(nft, heldCount) {
   const method = (nft.method || "").toLowerCase();
@@ -521,8 +529,8 @@ function tick() {
     dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
     camera.position.addScaledVector(dir, 4.2 * dt);
   }
-  camera.position.x = Math.max(-6, Math.min(6, camera.position.x));
-  camera.position.z = Math.max(ovalBalance > 0 && OVAL_TOKEN !== "0x1234" ? -48 : -39, Math.min(20, camera.position.z));
+  camera.position.x = Math.max(-12, Math.min(12, camera.position.x));
+  camera.position.z = Math.max(ovalBalance > 0 && OVAL_TOKEN !== "0x1234" ? -70 : -68, Math.min(22, camera.position.z));
   camera.position.y = 1.6;
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
