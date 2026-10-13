@@ -598,10 +598,9 @@ function animate() {
     if (w.wait > 0) {
       w.wait -= dt;
       faceYaw(w.mesh, w.face, w.mesh.position.z);
-      const sway = Math.sin(w.phase * 1.4) * 0.04;
-      w.body.rotation.x = sway * 0.3;
-      w.armL.rotation.x = sway;
-      w.armR.rotation.x = -sway;
+      w.body.rotation.x = 0;
+      w.armL.rotation.x = 0;
+      w.armR.rotation.x = 0;
       w.legL.rotation.x = 0;
       w.legR.rotation.x = 0;
       if (w.wait <= 0) { const s = spot(); w.tx = s[0]; w.tz = s[1]; w.face = s[2]; }
