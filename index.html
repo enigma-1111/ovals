@@ -91,6 +91,7 @@
 <div class="sheet" id="sheet">
   <div class="panel">
     <h2>Enter</h2>
+    <p>Connect or paste an address. Seat holders and coin holders are marked.</p>
     <button id="use-here">Wallet in this browser</button>
     <a href="https://metamask.app.link/dapp/ovals.vercel.app">MetaMask</a>
     <a href="https://rainbow.me/dapp/ovals.vercel.app">Rainbow</a>
@@ -159,18 +160,23 @@ let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
 const doorLeaf = mesh(new THREE.BoxGeometry(1.6, 2.6, 0.06), 0xd7b56a, 0, 1.6, -41.35);
+const doorLight = new THREE.PointLight(0x3a8a4a, 0, 6);
+doorLight.position.set(0, 1.8, -40.8);
+scene.add(doorLight);
 function updateDoor() {
   const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
   const open = live && ovalBalance > 0;
   doorLeaf.visible = true;
   if (open) {
     doorLeaf.material.color.set(0x3a8a4a);
-    doorLeaf.position.x = 1.15;
-    doorLeaf.rotation.y = Math.PI / 3;
+    doorLeaf.position.x = 1.35;
+    doorLeaf.rotation.y = Math.PI / 2.2;
+    doorLight.intensity = 0.85;
   } else {
     doorLeaf.material.color.set(0xd7b56a);
     doorLeaf.position.x = 0;
     doorLeaf.rotation.y = 0;
+    doorLight.intensity = 0;
   }
 }
 updateDoor();
@@ -484,12 +490,17 @@ async function enter(address) {
       const idHex = await rpc("eth_call", [{ to: CONTRACT, data: "0x2f745c59" + hexPad(address.slice(2)) + hexPad(i) }, "latest"]);
       heldAssets.push(parseInt(idHex, 16));
     }
-    const isHolder = heldAssets.length > 0;
-    status.textContent = isHolder
-      ? "Holder. You hold " + heldAssets.length + " seat" + (heldAssets.length === 1 ? "" : "s") + "."
-      : "Visitor. Walk the room.";
-    paintClaims();
     await checkOval();
+    const seats = heldAssets.length;
+    const coin = ovalBalance > 0;
+    const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
+    let msg = "";
+    if (seats && coin && live) msg = "Holder. " + seats + " seat" + (seats === 1 ? "" : "s") + " and the coin. The gold door is open.";
+    else if (seats) msg = "Holder. You hold " + seats + " seat" + (seats === 1 ? "" : "s") + ".";
+    else if (coin && live) msg = "Coin holder. The gold door is open.";
+    else msg = "Visitor. Walk the room.";
+    status.textContent = msg;
+    paintClaims();
   } catch (e) { status.textContent = "Could not read the chain."; }
 }
 async function checkOval() {
@@ -503,7 +514,7 @@ async function checkOval() {
   updateDoor();
   const el = document.getElementById("oval-bal");
   if (el && document.getElementById("oval").classList.contains("on")) {
-    el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) : "No OVAL on this address.";
+    el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The gold door is open." : "No OVAL on this address.";
   }
 }
 function claimedKey(addr, id) { return "oval.claimed." + addr + "." + id; }
@@ -512,7 +523,10 @@ function paintClaims() {
   list.innerHTML = "";
   document.getElementById("floor-line").textContent = FLOOR;
   if (!account) { document.getElementById("claims-note").textContent = "Enter to see the seats on this address."; return; }
-  document.getElementById("claims-note").textContent = heldAssets.length ? "Holder. Seats on this address." : "No seats on this address.";
+  const seats = heldAssets.length;
+  document.getElementById("claims-note").textContent = seats
+    ? "Holder. " + seats + " seat" + (seats === 1 ? "" : "s") + " on this address."
+    : "Visitor. No seats on this address.";
   let total = 0;
   heldAssets.forEach(id => {
     const share = Math.round(WEEK / 10000 * (1 + (id % 7) * 0.1));
@@ -536,7 +550,7 @@ document.getElementById("oval-open").onclick = () => {
   if (!account) { el.textContent = "Enter to see your OVAL."; return; }
   const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
   if (!live) { el.textContent = "The coin is not yet in the room."; return; }
-  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) : "Checking…";
+  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The gold door is open." : "No OVAL on this address.";
   checkOval();
 };
 document.getElementById("close-oval").onclick = () => document.getElementById("oval").classList.remove("on");
