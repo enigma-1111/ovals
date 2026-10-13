@@ -47,7 +47,7 @@
 <div id="status">Opening the hall</div>
 <div class="bar">
   <button id="connect">Enter</button>
-  <button id="rules-open">Proof Rules</button>
+  <button id="rules-open">Rules</button>
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
   <button id="claims-open">Claims</button>
@@ -56,7 +56,7 @@
 <div id="stick"><div id="knob"></div></div>
 <div class="sheet" id="rules">
   <div class="panel">
-    <h2>Proof Rules</h2>
+    <h2>Rules</h2>
     <p>An oval is a seat. Holding one earns OVAL.</p>
     <p>Holding OVAL earns the trading fees, in OVAL and WETH.</p>
     <p>The gold door is for holders of the coin.</p>
@@ -119,10 +119,10 @@ const status = document.getElementById("status");
 if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
 const THREE = window.THREE;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xe6e6ea);
-scene.fog = new THREE.Fog(0xe6e6ea, 28, 90);
+scene.background = new THREE.Color(0xf3f0ea);
+scene.fog = new THREE.Fog(0xf3f0ea, 18, 46);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 140);
-camera.position.set(2, 1.6, 14);
+camera.position.set(0, 1.6, 4);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
@@ -137,31 +137,29 @@ function mesh(geo, color, x, y, z) {
   scene.add(m);
   return m;
 }
-mesh(new THREE.BoxGeometry(34, 0.2, 110), 0x8b5a2b, 0, 0, -20); // wood floor
-mesh(new THREE.BoxGeometry(34, 0.15, 110), 0xa8d0e6, 0, 12.2, -20);
-mesh(new THREE.BoxGeometry(0.3, 12, 110), 0x8b3a3a, -16.8, 6, -20);
-mesh(new THREE.BoxGeometry(0.3, 12, 110), 0x8b3a3a, 16.8, 6, -20);
-mesh(new THREE.BoxGeometry(34, 12, 0.3), 0x8b3a3a, 0, 6, -74);
-for (let z = 18; z >= -68; z -= 10) mesh(new THREE.BoxGeometry(28, 0.03, 0.08), 0xc8e0f0, 0, 8.52, z); // glass mullions
-mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, -10, 2.4, 8);
-mesh(new THREE.BoxGeometry(6, 4.8, 0.16), 0xc4a484, 10, 2.4, -6);
-mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xc4a484, -6, 2.4, -22);
-mesh(new THREE.BoxGeometry(0.16, 4.8, 8), 0xc4a484, 6, 2.4, -38);
-mesh(new THREE.BoxGeometry(8, 4.8, 0.16), 0xc4a484, 0, 2.4, -52);
-mesh(new THREE.BoxGeometry(0.16, 4.8, 7), 0xc4a484, -8, 2.4, -62);
-function pillar(x, z) { return mesh(new THREE.BoxGeometry(1.6, 5.8, 1.6), 0x111114, x, 2.9, z); }
-const pillars = [[0, 10], [-8, 0], [8, -8], [0, -24], [-9, -36], [9, -44], [0, -58]];
-pillars.forEach(([x, z]) => pillar(x, z));
-mesh(new THREE.BoxGeometry(12, 0.16, 62), 0xc4a574, 9, 5.2, -31);
-const steps = 12;
-for (let i = 0; i < steps; i++) {
-  const z = 10 - i * (10 / (steps - 1));
-  const y = 0.28 + (i / (steps - 1)) * 4.95;
-  mesh(new THREE.BoxGeometry(2.4, 0.16, 0.95), 0xb89460, 4.2, y, z);
+// one hall. white walls. wood floor. pictures at eye height.
+mesh(new THREE.BoxGeometry(18, 0.16, 48), 0xc4a574, 0, 0, -16); // floor
+mesh(new THREE.BoxGeometry(18, 0.12, 48), 0xf4f1ec, 0, 5.4, -16); // ceiling
+mesh(new THREE.BoxGeometry(0.2, 5.4, 48), 0xf7f4ef, -8.9, 2.7, -16); // left
+mesh(new THREE.BoxGeometry(0.2, 5.4, 48), 0xf7f4ef, 8.9, 2.7, -16); // right
+mesh(new THREE.BoxGeometry(18, 5.4, 0.2), 0xf7f4ef, 0, 2.7, -40); // end
+mesh(new THREE.BoxGeometry(18, 5.4, 0.2), 0xf7f4ef, 0, 2.7, 8); // back
+mesh(new THREE.BoxGeometry(10, 0.04, 0.12), 0xd8d2c8, 0, 5.36, -16); // skylight bar
+function bench(x, z) {
+  const g = new THREE.Group();
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.4), new THREE.MeshLambertMaterial({ color: 0x6b4423 }));
+  seat.position.y = 0.42;
+  const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), new THREE.MeshLambertMaterial({ color: 0x4a2f18 }));
+  [[-0.65, 0.15], [0.65, 0.15], [-0.65, -0.15], [0.65, -0.15]].forEach(([lx, lz]) => {
+    const l = leg.clone(); l.position.set(lx, 0.2, lz); g.add(l);
+  });
+  g.add(seat);
+  g.position.set(x, 0, z);
+  scene.add(g);
 }
-mesh(new THREE.BoxGeometry(2.6, 0.16, 1.4), 0xc4a574, 4.2, 5.28, -0.4);
-mesh(new THREE.BoxGeometry(0.1, 1.0, 11), 0x6b4423, 2.9, 3.2, 5);
-mesh(new THREE.BoxGeometry(0.1, 1.0, 11), 0x6b4423, 5.5, 3.2, 5);
+bench(0, -6);
+bench(0, -22);
+const pillars = [];
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
 const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
@@ -368,57 +366,23 @@ function placePillar(nft, x, z, yaw) {
   if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 }
 async function furnish() {
-  const ids = [];
-  for (let id = 1; id <= 200; id++) ids.push(id);
   const slots = [];
-  const gap = 1.8;
-  for (let z = 16; z >= -70; z -= gap) {
-    slots.push({ x: -16.15, y: 2.2, z, yaw: -Math.PI / 2 });
-    slots.push({ x: 16.15, y: 2.2, z, yaw: Math.PI / 2 });
-    slots.push({ x: -16.15, y: 7.6, z, yaw: -Math.PI / 2 });
-    slots.push({ x: 16.15, y: 7.6, z, yaw: Math.PI / 2 });
+  const gap = 2.2;
+  for (let z = 4; z >= -36; z -= gap) {
+    slots.push({ x: -8.55, y: 1.7, z, yaw: -Math.PI / 2 });
+    slots.push({ x: 8.55, y: 1.7, z, yaw: Math.PI / 2 });
   }
-  for (let x = -12; x <= 12; x += gap) {
-    slots.push({ x, y: 2.2, z: -73.5, yaw: 0 });
-    slots.push({ x, y: 6.4, z: -73.5, yaw: 0 });
-  }
-  for (let z = 8; z >= -8; z -= gap) slots.push({ x: -4, y: 2.2, z, yaw: Math.PI / 2 });
-  for (let x = -12.2; x <= -7.8; x += gap) {
-    slots.push({ x, y: 2.1, z: 8.16, yaw: 0 });
-    slots.push({ x, y: 2.1, z: 7.84, yaw: Math.PI });
-  }
-  for (let x = 7.8; x <= 12.2; x += gap) {
-    slots.push({ x, y: 2.1, z: -5.84, yaw: 0 });
-    slots.push({ x, y: 2.1, z: -6.16, yaw: Math.PI });
-  }
-  for (let z = -25.2; z <= -18.8; z += gap) {
-    slots.push({ x: -5.84, y: 2.1, z, yaw: Math.PI / 2 });
-    slots.push({ x: -6.16, y: 2.1, z, yaw: -Math.PI / 2 });
-  }
-  for (let z = -41.2; z <= -34.8; z += gap) {
-    slots.push({ x: 6.16, y: 2.1, z, yaw: Math.PI / 2 });
-    slots.push({ x: 5.84, y: 2.1, z, yaw: -Math.PI / 2 });
-  }
-  for (let x = -3.2; x <= 3.2; x += gap) {
-    slots.push({ x, y: 2.1, z: -51.84, yaw: 0 });
-    slots.push({ x, y: 2.1, z: -52.16, yaw: Math.PI });
-  }
-  pillars.forEach(([x, z]) => {
-    slots.push({ x, y: 2.8, z: z + 0.86, yaw: 0, pillar: true });
-    slots.push({ x, y: 2.8, z: z - 0.86, yaw: Math.PI, pillar: true });
-    slots.push({ x: x + 0.86, y: 2.8, z, yaw: Math.PI / 2, pillar: true });
-    slots.push({ x: x - 0.86, y: 2.8, z, yaw: -Math.PI / 2, pillar: true });
-  });
+  for (let x = -6; x <= 6; x += gap) slots.push({ x, y: 1.7, z: -39.6, yaw: 0 });
   const hung = [];
   slots.forEach((s, i) => {
     const stub = { id: i + 1, name: "Oval " + (i + 1) };
-    if (s.pillar) placePillar(stub, s.x, s.z, s.yaw);
-    else hung.push({ mat: hang(stub, s.x, s.y, s.z, s.yaw), frame: frames[frames.length - 1] });
+    hung.push({ mat: hang(stub, s.x, s.y, s.z, s.yaw), frame: frames[frames.length - 1] });
   });
-  status.textContent = hung.length + " seats on the wall.";
+  status.textContent = hung.length + " portraits on the wall.";
   let filled = 0;
-  for (let i = 0; i < Math.min(ids.length, hung.length); i += 6) {
-    const batch = ids.slice(i, i + 6);
+  for (let i = 0; i < hung.length; i += 6) {
+    const batch = [];
+    for (let j = 0; j < 6 && i + j < hung.length; j++) batch.push(i + j + 1);
     const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
     tokens.forEach((nft, j) => {
       const h = hung[i + j];
@@ -428,7 +392,7 @@ async function furnish() {
       filled++;
     });
   }
-  status.textContent = filled ? (filled + " portraits hung.") : (hung.length + " seats on the wall.");
+  status.textContent = filled ? (filled + " portraits hung.") : (hung.length + " portraits on the wall.");
 }
 furnish();
 const keys = {};
@@ -469,7 +433,7 @@ stick.addEventListener("touchmove", moveJoy, {passive: false});
 stick.addEventListener("touchend", endJoy);
 stick.addEventListener("touchcancel", endJoy);
 let downX = 0, downY = 0;
-let yaw = 0.9, pitch = 0, looking = false, lastX = 0, lastY = 0;
+let yaw = 1.2, pitch = 0, looking = false, lastX = 0, lastY = 0;
 renderer.domElement.addEventListener("pointerdown", (e) => {
   downX = e.clientX; downY = e.clientY; lastX = e.clientX; lastY = e.clientY;
   looking = e.clientX > innerWidth * 0.36;
@@ -630,13 +594,9 @@ function animate() {
   } else {
     walkAmt = Math.max(0, walkAmt - dt * 3);
   }
-  camera.position.x = Math.max(-15.2, Math.min(15.2, camera.position.x));
-  camera.position.z = Math.max(-71, Math.min(20, camera.position.z));
-  const onStair = camera.position.z <= 10.4 && camera.position.z >= -0.6 && Math.abs(camera.position.x - 4.2) < 1.5;
-  const onDeck = camera.position.x > 2.8 && camera.position.z < 0.4 && camera.position.z > -61;
+  camera.position.x = Math.max(-7.6, Math.min(7.6, camera.position.x));
+  camera.position.z = Math.max(-38.4, Math.min(6.4, camera.position.z));
   let stand = 1.6;
-  if (onStair) stand = 1.6 + Math.max(0, Math.min(1, (10.4 - camera.position.z) / 10.8)) * 5.2;
-  else if (onDeck) stand = 6.8;
   camera.position.y = stand + Math.sin(bob) * 0.035 * walkAmt;
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
