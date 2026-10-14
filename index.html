@@ -184,7 +184,7 @@ function applyStyle(i) {
   if (typeof dress === 'function') dress(s.name);
   return s;
 }
-applyStyle(0);
+try { applyStyle(0); } catch (e) { status.textContent = "Style: " + e.message; }
 status.textContent = "The room is open.";
 (function paint() {
   if (!renderer) return;
