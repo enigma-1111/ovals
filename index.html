@@ -177,8 +177,8 @@ function applyStyle(i) {
   return s;
 }
 status.textContent = "Walled";
-applyStyle(0);
-status.textContent = "Styled";
+try { applyStyle(0); status.textContent = "Styled"; }
+catch (e) { status.textContent = "style: " + e.message; }
 const pillars = [];
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
