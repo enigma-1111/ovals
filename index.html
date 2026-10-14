@@ -47,7 +47,7 @@
 <div id="status">Opening the hall</div>
 <div class="bar">
   <button id="connect">Enter</button>
-  <button id="rules-open">Rules</button>
+  <button id="rules-open">Proof Rules</button>
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
   <button id="claims-open">Claims</button>
@@ -56,7 +56,7 @@
 <div id="stick"><div id="knob"></div></div>
 <div class="sheet" id="rules">
   <div class="panel">
-    <h2>Rules</h2>
+    <h2>Proof Rules</h2>
     <p>An oval is a seat. Holding one earns OVAL.</p>
     <p>Holding OVAL earns the trading fees, in OVAL and WETH.</p>
     <p>The gold door is for holders of the coin.</p>
@@ -91,7 +91,7 @@
 <div class="sheet" id="sheet">
   <div class="panel">
     <h2>Enter</h2>
-    <p>Connect or paste an address. Seat holders and coin holders are marked.</p>
+    <p>Connect or paste an address. Seat holders see their claims. Coin holders open the gold door when the coin is live.</p>
     <button id="use-here">Wallet in this browser</button>
     <a href="https://metamask.app.link/dapp/ovals.vercel.app">MetaMask</a>
     <a href="https://rainbow.me/dapp/ovals.vercel.app">Rainbow</a>
@@ -172,15 +172,17 @@ function updateDoor() {
   const open = live && ovalBalance > 0;
   doorLeaf.visible = true;
   if (open) {
-    doorLeaf.material.color.set(0x3a8a4a);
-    doorLeaf.position.x = 1.35;
-    doorLeaf.rotation.y = Math.PI / 2.2;
-    doorLight.intensity = 0.85;
+    doorLeaf.material.color.set(0x4ade80);
+    doorLeaf.position.x = 1.4;
+    doorLeaf.rotation.y = Math.PI / 2.4;
+    doorLight.intensity = 1.2;
+    doorLight.color.set(0x4ade80);
   } else {
-    doorLeaf.material.color.set(0xd7b56a);
+    doorLeaf.material.color.set(0xe8c97a);
     doorLeaf.position.x = 0;
     doorLeaf.rotation.y = 0;
-    doorLight.intensity = 0;
+    doorLight.intensity = 0.1;
+    doorLight.color.set(0xe8c97a);
   }
 }
 updateDoor();
