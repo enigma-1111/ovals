@@ -119,6 +119,7 @@ const POOLS = "https://pools.fun/";
 const MINT_BLOCK = 83602400;
 const status = document.getElementById("status");
 if (!window.THREE) { status.textContent = "The hall did not load. Refresh."; throw new Error("three"); }
+status.textContent = "Building";
 const THREE = window.THREE;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf3f0ea);
@@ -270,6 +271,7 @@ function dress(name) {
     details.add(plinth);
   }
 }
+status.textContent = "Dressing";
 dress("Cream");
 const walkers = [];
 function spot() {
@@ -315,6 +317,7 @@ person(5.1, 8, 0x3d3a34);
 person(-4.8, 0.5, 0xc45a4a);
 person(0.4, -6, 0x4a5560);
 person(5.2, -16, 0x2c3a4a);
+status.textContent = "People in";
 const frames = [];
 const loader = new THREE.TextureLoader();
 loader.setCrossOrigin("anonymous");
