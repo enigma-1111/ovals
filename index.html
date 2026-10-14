@@ -196,32 +196,6 @@ status.textContent = "The room is open.";
 })();
 const pillars = [];
 let account = null, heldAssets = [], ovalBalance = 0;
-// Door
-const doorFrame = mesh(new THREE.BoxGeometry(2.2, 3.2, 0.16), 0x1a1014, 0, 1.6, -(A - 2));
-const doorLeaf = mesh(new THREE.BoxGeometry(1.5, 2.4, 0.06), 0xd7b56a, 0, 1.5, -(A - 2) + 0.15);
-const doorLight = new THREE.PointLight(0x3a8a4a, 0, 6);
-doorLight.position.set(0, 1.7, -(A - 2) + 0.6);
-scene.add(doorLight);
-function updateDoor() {
-  const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
-  const open = live && ovalBalance > 0;
-  doorLeaf.visible = true;
-  if (open) {
-    doorLeaf.material.color.set(0x4ade80);
-    doorLeaf.position.x = 1.4;
-    doorLeaf.rotation.y = Math.PI / 2.4;
-    doorLight.intensity = 1.2;
-    doorLight.color.set(0x4ade80);
-  } else {
-    doorLeaf.material.color.set(0xe8c97a);
-    doorLeaf.position.x = 0;
-    doorLeaf.rotation.y = 0;
-    doorLight.intensity = 0.1;
-    doorLight.color.set(0xe8c97a);
-  }
-}
-updateDoor();
-
 const portalZ = -(A - 5.2);
 const portal = new THREE.Group();
 portal.position.set(0, 0, portalZ);
@@ -616,7 +590,6 @@ async function enter(address) {
     const msg = heldAssets.length ? (heldAssets.length + " seats on this address.") : "No seats on this address.";
     status.textContent = msg;
   } catch (e) { status.textContent = "Could not read the chain."; }
-  updateDoor();
   refreshClaims();
 }
 function refreshClaims() {
@@ -624,7 +597,7 @@ function refreshClaims() {
   const el = document.getElementById("oval-bal");
   if (!live) { el.textContent = "The coin is not yet in the room."; return; }
   if (!account) { el.textContent = "Enter to see your OVAL."; return; }
-  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The gold door is open." : "No OVAL on this address.";
+  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The coin is on this address." : "No OVAL on this address.";
 }
 function refreshClaimsList() {
   const list = document.getElementById("claims-list");
@@ -666,7 +639,7 @@ async function showOval() {
   if (!account) { el.textContent = "Enter to see your OVAL."; return; }
   const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
   if (!live) { el.textContent = "The coin is not yet in the room."; return; }
-  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The gold door is open." : "No OVAL on this address.";
+  el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The coin is on this address." : "No OVAL on this address.";
 }
 document.getElementById("use-here").onclick = async () => { const list = discovered(); if (!list[0]) { document.getElementById("sheet-note").textContent = "No wallet in this browser. Paste the address."; return; } try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Refused."; } };
 document.getElementById("use-addr").onclick = async () => { const address = document.getElementById("addr").value.trim(); if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full 0x address."; return; } await enter(address); };
