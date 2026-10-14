@@ -392,12 +392,30 @@ function person(x, z, color, female, skinHex, hairHex) {
   walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.55 + Math.random() * 0.35, armL, armR, legL, legR, body });
   return g;
 }
-person(-5.2, 11, 0x8a3a32, false, 0xf1d2b8, 0x1a120e);
-person(-4.4, 6.5, 0x6a3a52, true, 0xe8c4a0, 0x4a2418);
-person(5.1, 8, 0x3d3a34, false, 0xc48a62, 0x2c241c);
-person(-4.8, 0.5, 0xc45a4a, true, 0xd7a87a, 0xc4a06a);
-person(0.4, -6, 0x4a5560, false, 0x8d5a3c, 0x1c140e);
-person(5.2, -16, 0x7a4a62, true, 0xa56b45, 0x3a2218);
+const CLOTH = [0x8a3a32, 0x2f4a62, 0x3d3a34, 0xc45a4a, 0x4a5560, 0x6a3a52, 0x7a4a62, 0x2c3a4a];
+const SKIN = [0xf1d2b8, 0xe8c4a0, 0xd7a87a, 0xc48a62, 0xa56b45, 0x8d5a3c];
+const HAIR = [0x1a120e, 0x4a2418, 0x2c241c, 0xc4a06a, 0x1c140e, 0x3a2218, 0x6b3a28];
+function roomRand(seed) {
+  let s = (seed * 1103515245 + 12345) & 0x7fffffff;
+  return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+}
+function clearCrowd() {
+  walkers.forEach(w => scene.remove(w.mesh));
+  walkers.length = 0;
+}
+function crowd(room) {
+  clearCrowd();
+  const rnd = roomRand(room + 7);
+  const count = 1 + Math.floor(rnd() * 11);
+  for (let i = 0; i < count; i++) {
+    const ang = rnd() * Math.PI * 2;
+    const r = 0.25 + rnd() * 0.55;
+    const x = Math.cos(ang) * (B - 3) * r;
+    const z = Math.sin(ang) * (A - 4) * r;
+    const female = rnd() < 0.5;
+    person(x, z, CLOTH[Math.floor(rnd() * CLOTH.length)], female, SKIN[Math.floor(rnd() * SKIN.length)], HAIR[Math.floor(rnd() * HAIR.length)]);
+  }
+}
 const frames = [];
 const loader = new THREE.TextureLoader();
 loader.setCrossOrigin("anonymous");
@@ -506,6 +524,7 @@ async function fillWing(n) {
   const start = wing * ROOM + 1;
   const style = applyStyle(wing);
   status.textContent = style.name + " room · hanging";
+  crowd(wing);
   let filled = 0;
   for (let i = 0; i < hung.length; i += 8) {
     const batch = [];
