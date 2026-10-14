@@ -176,7 +176,9 @@ function applyStyle(i) {
   if (typeof dress === 'function') dress(s.name);
   return s;
 }
+status.textContent = "Walled";
 applyStyle(0);
+status.textContent = "Styled";
 const pillars = [];
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
@@ -203,6 +205,7 @@ function updateDoor() {
     doorLight.color.set(0xe8c97a);
   }
 }
+status.textContent = "Doored";
 updateDoor();
 const details = new THREE.Group();
 scene.add(details);
@@ -570,7 +573,8 @@ async function enter(address) {
     const msg = heldAssets.length ? (heldAssets.length + " seats on this address.") : "No seats on this address.";
     status.textContent = msg;
   } catch (e) { status.textContent = "Could not read the chain."; }
-  updateDoor();
+  status.textContent = "Doored";
+updateDoor();
   refreshClaims();
 }
 function refreshClaims() {
