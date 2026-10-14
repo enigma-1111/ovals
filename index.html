@@ -566,10 +566,26 @@ document.getElementById("use-here").onclick = async () => { const list = discove
 document.getElementById("use-addr").onclick = async () => { const address = document.getElementById("addr").value.trim(); if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full 0x address."; return; } await enter(address); };
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 let bob = 0, walkAmt = 0;
-const blocks = [[-16.8,-20,0.7,55],[16.8,-20,0.7,55],[0,-74,17,0.6],[-10,8,3.2,0.5],[10,-6,3.2,0.5],[-6,-22,0.5,4.2],[6,-38,0.5,4.2],[0,-52,4.2,0.5],[-8,-62,0.5,3.6]];
-[[0,10],[-8,0],[8,-8],[0,-24],[-9,-36],[9,-44],[0,-58]].forEach(([x,z]) => blocks.push([x,z,1.05,1.05]));
+// Walls and pillars for the one hall
+const blocks = [
+  // left wall
+  [-9.1, -16, 0.4, 24],
+  // right wall
+  [9.1, -16, 0.4, 24],
+  // back wall
+  [0, 8.2, 9, 0.4],
+  // end wall
+  [0, -40.2, 9, 0.4],
+  // statues as pillars
+  [-3.2, 4, 0.6, 0.6],
+  [3.2, -6, 0.6, 0.6],
+  [-3.2, -18, 0.6, 0.6],
+  [3.2, -30, 0.6, 0.6]
+];
 function blocked(x, z) {
-  for (const b of blocks) if (Math.abs(x - b[0]) < b[2] + 0.4 && Math.abs(z - b[1]) < b[3] + 0.4) return true;
+  for (const b of blocks) {
+    if (Math.abs(x - b[0]) < b[2] + 0.35 && Math.abs(z - b[1]) < b[3] + 0.35) return true;
+  }
   return false;
 }
 function animate() {
@@ -603,6 +619,8 @@ function animate() {
   camera.rotation.x = pitch;
   walkers.forEach(w => {
     w.phase += dt;
+    w.mesh.rotation.x = 0;
+    w.mesh.rotation.z = 0;
     if (w.wait > 0) {
       w.wait -= dt;
       faceYaw(w.mesh, w.face, w.mesh.position.z);
@@ -626,6 +644,7 @@ function animate() {
     w.legR.rotation.x = -swing;
     w.armL.rotation.x = -swing * 0.7;
     w.armR.rotation.x = swing * 0.7;
+    w.body.rotation.x = 0;
     w.mesh.position.y = Math.abs(Math.sin(w.phase * 7)) * 0.02;
   });
   renderer.render(scene, camera);
