@@ -51,6 +51,8 @@
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
   <button id="claims-open">Claims</button>
+  <button id="wing-prev">Prev</button>
+  <button id="wing-next">Next wing</button>
 </div>
 <div id="plaque"></div>
 <div id="stick"><div id="knob"></div></div>
@@ -367,6 +369,35 @@ function placePillar(nft, x, z, yaw) {
   frames.push({ mesh: art, nft });
   if (nft.image) loader.load(nft.image, (tex) => { mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 }
+let hung = [];
+let wing = 0;
+const WING = 44;
+async function fillWing(n) {
+  wing = Math.max(0, n);
+  const start = wing * WING + 1;
+  status.textContent = "Wing " + (wing + 1) + " · hanging";
+  let filled = 0;
+  for (let i = 0; i < hung.length; i += 6) {
+    const batch = [];
+    for (let j = 0; j < 6 && i + j < hung.length; j++) batch.push(start + i + j);
+    const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
+    tokens.forEach((nft, j) => {
+      const h = hung[i + j];
+      if (!h) return;
+      if (!nft || !nft.image) {
+        h.frame.nft = { id: start + i + j, name: "Oval " + (start + i + j) };
+        h.mat.map = mark;
+        h.mat.needsUpdate = true;
+        return;
+      }
+      h.frame.nft = nft;
+      loader.load(nft.image, (tex) => { h.mat.map = tex; h.mat.needsUpdate = true; });
+      filled++;
+    });
+  }
+  status.textContent = "Wing " + (wing + 1) + " · " + filled + " portraits";
+  camera.position.set(0, 1.6, 4);
+}
 async function furnish() {
   const slots = [];
   const gap = 2.2;
@@ -375,28 +406,15 @@ async function furnish() {
     slots.push({ x: 8.55, y: 1.7, z, yaw: -Math.PI / 2 });
   }
   for (let x = -6; x <= 6; x += gap) slots.push({ x, y: 1.7, z: -39.6, yaw: 0 });
-  const hung = [];
   slots.forEach((s, i) => {
     const stub = { id: i + 1, name: "Oval " + (i + 1) };
     hung.push({ mat: hang(stub, s.x, s.y, s.z, s.yaw), frame: frames[frames.length - 1] });
   });
-  status.textContent = hung.length + " portraits on the wall.";
-  let filled = 0;
-  for (let i = 0; i < hung.length; i += 6) {
-    const batch = [];
-    for (let j = 0; j < 6 && i + j < hung.length; j++) batch.push(i + j + 1);
-    const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
-    tokens.forEach((nft, j) => {
-      const h = hung[i + j];
-      if (!nft || !h || !nft.image) return;
-      h.frame.nft = nft;
-      loader.load(nft.image, (tex) => { h.mat.map = tex; h.mat.needsUpdate = true; });
-      filled++;
-    });
-  }
-  status.textContent = filled ? (filled + " portraits hung.") : (hung.length + " portraits on the wall.");
+  await fillWing(0);
 }
 furnish();
+document.getElementById("wing-next").onclick = () => fillWing(wing + 1);
+document.getElementById("wing-prev").onclick = () => fillWing(wing - 1);
 const keys = {};
 addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
 addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
@@ -571,6 +589,10 @@ function animate() {
     camera.position.addScaledVector(right, dir.x * speed);
     camera.position.x = Math.max(-8.2, Math.min(8.2, camera.position.x));
     camera.position.z = Math.max(-39, Math.min(7, camera.position.z));
+  if (camera.position.z < -37.6 && !window.__wingLock) {
+    window.__wingLock = true;
+    fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 1200));
+  }
   }
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
