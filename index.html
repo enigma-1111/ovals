@@ -221,6 +221,39 @@ function updateDoor() {
   }
 }
 updateDoor();
+
+const portalZ = -(A - 5.2);
+const portal = new THREE.Group();
+portal.position.set(0, 0, portalZ);
+const jamb = new THREE.MeshLambertMaterial({ color: 0xd4af6a });
+const leftJ = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.2, 0.16), jamb);
+leftJ.position.set(-1.15, 1.6, 0);
+const rightJ = leftJ.clone();
+rightJ.position.x = 1.15;
+const lintel = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.16, 0.16), jamb);
+lintel.position.set(0, 3.2, 0);
+const step = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 0.7), new THREE.MeshLambertMaterial({ color: 0xc4a574 }));
+step.position.set(0, 0.06, 0.2);
+const glow = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.8), new THREE.MeshBasicMaterial({ color: 0xf6e7c1, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+glow.position.set(0, 1.6, 0);
+const labelCanvas = document.createElement("canvas");
+labelCanvas.width = 512; labelCanvas.height = 128;
+const lctx = labelCanvas.getContext("2d");
+lctx.fillStyle = "rgba(20,16,12,0.0)";
+lctx.fillRect(0, 0, 512, 128);
+lctx.fillStyle = "#2b2116";
+lctx.font = "600 54px Palatino, Georgia, serif";
+lctx.textAlign = "center";
+lctx.textBaseline = "middle";
+lctx.fillText("NEXT ROOM", 256, 64);
+const labelTex = new THREE.CanvasTexture(labelCanvas);
+const label = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: labelTex, transparent: true }));
+label.position.set(0, 3.7, 0);
+portal.add(leftJ, rightJ, lintel, step, glow, label);
+scene.add(portal);
+const portalLight = new THREE.PointLight(0xffe8b0, 0.7, 8);
+portalLight.position.set(0, 2.2, portalZ + 0.4);
+scene.add(portalLight);
 function clearDetails() {
   while (details.children.length) details.remove(details.children[0]);
 }
@@ -660,7 +693,7 @@ function animate() {
       camera.position.x = nx * s * (B - 1.4);
       camera.position.z = nz * s * (A - 1.4);
     }
-  if (camera.position.z < -(A - 2.4) && !window.__wingLock) {
+  if (camera.position.z < portalZ + 0.6 && Math.abs(camera.position.x) < 1.4 && !window.__wingLock) {
     window.__wingLock = true;
     fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 1400));
   }
