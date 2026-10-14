@@ -31,7 +31,8 @@
   .asset button { width:auto; margin:0; padding:2px 7px; font-size:10px; flex-shrink:0; border-radius:4px; }
   #status { position:fixed; top:calc(108px + env(safe-area-inset-top)); left:16px; color:#cbb89a; font-size:12px; letter-spacing:.04em; z-index:2; pointer-events:none; }
   #plaque a { color:#2b2116; }
-  #plaque { position:fixed; left:50%; bottom:calc(140px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:180px; text-align:center; background:#f3e6cf; color:#2b2116; padding:12px 16px; display:none; z-index:10; border-radius:8px; }
+  #plaque { position:fixed; left:50%; bottom:calc(140px + env(safe-area-inset-bottom)); transform:translateX(-50%); min-width:220px; max-width:86vw; text-align:center; background:#f3e6cf; color:#2b2116; padding:12px 16px; display:none; z-index:10; border-radius:8px; }
+  #plaque .meta { display:block; font-size:12px; letter-spacing:.04em; margin:4px 0 8px; color:#6b5340; }
   #plaque b { display:block; }
   #stick { position:fixed; left:16px; bottom:calc(18px + env(safe-area-inset-bottom)); width:108px; height:108px; border-radius:50%; background:rgba(12,9,8,.6); border:1px solid rgba(228,201,138,.5); z-index:12; touch-action:none; }
   #knob { position:absolute; left:34px; top:34px; width:40px; height:40px; border-radius:50%; background:#efe4d2; }
@@ -377,6 +378,20 @@ function ovalMark() {
   return tex;
 }
 const mark = ovalMark();
+function numberPlate(id) {
+  const c = document.createElement("canvas");
+  c.width = 256; c.height = 96;
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, 256, 96);
+  ctx.fillStyle = "#2b2116";
+  ctx.font = "600 64px Palatino, Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(String(id), 128, 50);
+  const tex = new THREE.CanvasTexture(c);
+  tex.needsUpdate = true;
+  return tex;
+}
 function hang(nft, x, y, z, yaw) {
   const g = new THREE.Group();
   const w = 1.35, h = 1.7;
@@ -384,13 +399,17 @@ function hang(nft, x, y, z, yaw) {
   const artMat = new THREE.MeshBasicMaterial({ map: mark, color: 0xffffff, side: THREE.DoubleSide });
   const art = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.22, h - 0.22), artMat);
   art.position.z = 0.05;
-  g.add(frame, art);
+  const plateMat = new THREE.MeshBasicMaterial({ map: numberPlate(nft.id), transparent: true });
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.26), plateMat);
+  plate.position.set(0, -1.02, 0.06);
+  g.add(frame, art, plate);
   g.position.set(x, y, z);
   g.rotation.y = yaw;
   scene.add(g);
-  frames.push({ mesh: art, nft, mat: artMat });
+  const rec = { mesh: art, nft, mat: artMat, plateMat };
+  frames.push(rec);
   if (nft && nft.image) loader.load(nft.image, (tex) => { artMat.map = tex; artMat.needsUpdate = true; });
-  return artMat;
+  return rec;
 }
 async function fill(ids, side, start) {
   for (let i = 0; i < ids.length; i++) {
@@ -438,12 +457,14 @@ async function fillWing(n) {
       if (!h) return;
       const id = start + i + j;
       if (!nft || !nft.image) {
-        h.frame.nft = { id, name: "Oval " + id };
+        h.nft = { id, name: "Oval " + id };
+        h.plateMat.map = numberPlate(id); h.plateMat.needsUpdate = true;
         h.mat.map = mark;
         h.mat.needsUpdate = true;
         return;
       }
-      h.frame.nft = nft;
+      h.nft = nft;
+      h.plateMat.map = numberPlate(nft.id); h.plateMat.needsUpdate = true;
       loader.load(nft.image, (tex) => { h.mat.map = tex; h.mat.needsUpdate = true; });
       filled++;
     });
@@ -480,7 +501,7 @@ async function furnish() {
     const z = Math.sin(ang) * (A - 1.2);
     const yaw = Math.atan2(-x, -z);
     const stub = { id: i + 1, name: "Oval " + (i + 1) };
-    hung.push({ mat: hang(stub, x, row ? 3.4 : 1.6, z, yaw), frame: frames[frames.length - 1] });
+    hung.push(hang(stub, x, row ? 3.4 : 1.6, z, yaw));
   }
   await fillWing(0);
   } catch (e) { status.textContent = 'Room error'; console.error(e); }
@@ -550,7 +571,11 @@ function tryOpenPlaque(e) {
   if (!f) return;
   const p = document.getElementById("plaque");
   p.style.display = "block";
-  p.innerHTML = "<b>" + (f.nft.name || "Oval") + "</b><a href='" + sea(f.nft.id) + "' target='_blank' rel='noopener'>View on OpenSea</a>";
+  const n = f.nft || {};
+  const bits = [n.year, n.method, n.gaze, n.epoch].filter(Boolean).join(" · ");
+  p.innerHTML = "<b>" + (n.name || ("Oval " + n.id)) + "</b>" +
+    (bits ? "<span class='meta'>" + bits + "</span>" : "<span class='meta'>Oval " + n.id + "</span>") +
+    "<a href='" + sea(n.id) + "' target='_blank' rel='noopener'>View on OpenSea</a>";
 }
 renderer.domElement.addEventListener("pointerup", tryOpenPlaque);
 renderer.domElement.addEventListener("touchend", (e) => {
