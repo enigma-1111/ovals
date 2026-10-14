@@ -161,7 +161,8 @@ const STYLES = [
   { name: "Stone", wall: 0xe6e2dc, floor: 0xb7b1a8, ceil: 0xf0ece6, fog: 0xe8e4de, light: 0.85 },
   { name: "Gold", wall: 0xe8d7a8, floor: 0x6b4e2e, ceil: 0xf3e6c4, fog: 0xf0e2c0, light: 0.85 },
   { name: "Rose", wall: 0xf0d5d8, floor: 0xc4a0a4, ceil: 0xf8e8ea, fog: 0xf6e4e6, light: 0.9 },
-  { name: "Ink", wall: 0x1a1816, floor: 0x3a342c, ceil: 0x12100e, fog: 0x161412, light: 0.45 }
+  { name: "Ink", wall: 0x1a1816, floor: 0x3a342c, ceil: 0x12100e, fog: 0x161412, light: 0.45 },
+  { name: "Pearl", wall: 0xf2ebe4, floor: 0xd6c8bc, ceil: 0xf8f4ef, fog: 0xf4eee6, light: 0.88 }
 ];
 const floor = mesh(new THREE.CircleGeometry(1, 64), 0xc4a574, 0, 0, 0);
 floor.rotation.x = -Math.PI / 2;
@@ -307,6 +308,10 @@ function dress(name) {
     addPlant(0, -3);
   } else if (name === "Ink") {
     addLamp(-4, 3, 0xfff4e2); addLamp(4, 3, 0xfff4e2);
+  } else if (name === "Pearl") {
+    const pearl = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), new THREE.MeshLambertMaterial({ color: 0xf5f0e8 }));
+    pearl.position.set(0, 0.3, 0);
+    details.add(pearl);
   }
 }
 dress("Cream");
