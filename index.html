@@ -56,6 +56,8 @@
 <div class="bar" style="top:calc(132px + env(safe-area-inset-top))">
   <button id="wing-prev">Prev room</button>
   <button id="wing-next">Next room</button>
+  <input id="jump" inputmode="numeric" placeholder="Oval #" style="width:84px;text-align:center">
+  <button id="jump-go">Go</button>
 </div>
 <div id="plaque"></div>
 <div id="stick"><div id="knob"></div></div>
@@ -566,6 +568,14 @@ async function furnish() {
 furnish().catch(e => { status.textContent = 'Room error'; });
 document.getElementById("wing-next").onclick = () => fillWing(wing + 1);
 document.getElementById("wing-prev").onclick = () => fillWing(wing - 1);
+function jumpTo() {
+  const n = parseInt(document.getElementById("jump").value, 10);
+  if (!n || n < 1 || n > 10000) { status.textContent = "Enter a number from 1 to 10000."; return; }
+  fillWing(Math.floor((n - 1) / 100));
+  status.textContent = "Opening the room for " + n + ".";
+}
+document.getElementById("jump-go").onclick = jumpTo;
+document.getElementById("jump").addEventListener("keydown", (e) => { if (e.key === "Enter") jumpTo(); });
 const keys = {};
 addEventListener("keydown", (e) => { keys[e.key.toLowerCase()] = true; });
 addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
