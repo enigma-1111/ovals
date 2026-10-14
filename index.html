@@ -321,14 +321,46 @@ function faceYaw(mesh, x, z) {
 function person(x, z, color, female) {
   const g = new THREE.Group();
   const cloth = new THREE.MeshLambertMaterial({ color });
-  const skin = new THREE.MeshLambertMaterial({ color: 0xe2c2a4 });
+  const skin = new THREE.MeshLambertMaterial({ color: 0xe8c8b0 });
+  const hairMat = new THREE.MeshLambertMaterial({ color: female ? 0x2a1c16 : 0x3a2a22 });
+  if (female) {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.18), cloth);
+    body.position.y = 1.02;
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.07, 8), skin);
+    neck.position.y = 1.3;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 12), skin);
+    head.position.y = 1.46;
+    head.scale.set(0.92, 1.05, 0.95);
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.128, 12, 8), hairMat);
+    hair.position.y = 1.52;
+    hair.scale.set(1.02, 0.7, 1.02);
+    const fall = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.14, 0.42, 10), hairMat);
+    fall.position.set(0, 1.22, -0.02);
+    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), cloth);
+    armL.position.set(-0.2, 0.98, 0);
+    const armR = armL.clone();
+    armR.position.x = 0.2;
+    const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.16, 0.5, 14), cloth);
+    skirt.position.y = 0.62;
+    const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.36, 8), skin);
+    legL.position.set(-0.07, 0.2, 0);
+    const legR = legL.clone();
+    legR.position.x = 0.07;
+    g.add(body, neck, head, hair, fall, armL, armR, skirt, legL, legR);
+    g.scale.set(0.92, 0.92, 0.92);
+    g.position.set(x, 0, z);
+    scene.add(g);
+    const s = spot();
+    walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.5 + Math.random() * 0.3, armL, armR, legL, legR, body });
+    return g;
+  }
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.72, 0.22), cloth);
   body.position.y = 1.08;
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.08, 8), skin);
   neck.position.y = 1.48;
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), skin);
   head.position.y = 1.64;
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.145, 12, 8), new THREE.MeshLambertMaterial({ color: 0x3a2a22 }));
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.145, 12, 8), hairMat);
   hair.position.y = 1.72;
   hair.scale.y = 0.5;
   const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.48, 8), cloth);
@@ -340,12 +372,6 @@ function person(x, z, color, female) {
   const legR = legL.clone();
   legR.position.x = 0.09;
   g.add(body, neck, head, hair, armL, armR, legL, legR);
-  if (female) {
-    const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.18, 0.46, 12), cloth);
-    skirt.position.y = 0.72;
-    g.add(skirt);
-    hair.scale.set(1.05, 0.85, 1.05);
-  }
   g.position.set(x, 0, z);
   scene.add(g);
   const s = spot();
