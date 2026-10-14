@@ -51,8 +51,8 @@
   <button id="oval-open">OVAL</button>
   <button id="buy-floor">Buy floor</button>
   <button id="claims-open">Claims</button>
-  <button id="wing-prev">Prev</button>
-  <button id="wing-next">Next wing</button>
+  <button id="wing-prev">Prev room</button>
+  <button id="wing-next">Next room</button>
 </div>
 <div id="plaque"></div>
 <div id="stick"><div id="knob"></div></div>
@@ -139,35 +139,49 @@ function mesh(geo, color, x, y, z) {
   scene.add(m);
   return m;
 }
-// one hall. white walls. wood floor. pictures at eye height.
-mesh(new THREE.BoxGeometry(18, 0.16, 48), 0xc4a574, 0, 0, -16); // floor
-mesh(new THREE.BoxGeometry(18, 0.12, 48), 0xf4f1ec, 0, 5.4, -16); // ceiling
-mesh(new THREE.BoxGeometry(0.2, 5.4, 48), 0xf7f4ef, -8.9, 2.7, -16); // left
-mesh(new THREE.BoxGeometry(0.2, 5.4, 48), 0xf7f4ef, 8.9, 2.7, -16); // right
-mesh(new THREE.BoxGeometry(18, 5.4, 0.2), 0xf7f4ef, 0, 2.7, -40); // end
-mesh(new THREE.BoxGeometry(18, 5.4, 0.2), 0xf7f4ef, 0, 2.7, 8); // back
-mesh(new THREE.BoxGeometry(10, 0.04, 0.12), 0xd8d2c8, 0, 5.36, -16); // skylight bar
-function bench(x, z) {
-  const g = new THREE.Group();
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.4), new THREE.MeshLambertMaterial({ color: 0x6b4423 }));
-  seat.position.y = 0.42;
-  const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), new THREE.MeshLambertMaterial({ color: 0x4a2f18 }));
-  [[-0.65, 0.15], [0.65, 0.15], [-0.65, -0.15], [0.65, -0.15]].forEach(([lx, lz]) => {
-    const l = leg.clone(); l.position.set(lx, 0.2, lz); g.add(l);
-  });
-  g.add(seat);
-  g.position.set(x, 0, z);
-  scene.add(g);
+const A = 18, B = 11; // oval: long on z, wide on x
+const STYLES = [
+  { name: "Cream", wall: 0xf7f4ef, floor: 0xc4a574, ceil: 0xf4f1ec, fog: 0xf3f0ea, light: 0.95 },
+  { name: "Night", wall: 0x1c1a22, floor: 0x2a241c, ceil: 0x121018, fog: 0x14121a, light: 0.4 },
+  { name: "Salon", wall: 0x7a2e32, floor: 0x6b4423, ceil: 0x4a2426, fog: 0x3a1c1e, light: 0.7 },
+  { name: "Garden", wall: 0xdfe8dc, floor: 0x7d8f62, ceil: 0xeef3ea, fog: 0xe4eee0, light: 0.9 },
+  { name: "Blue", wall: 0xd7e3ee, floor: 0x7f96aa, ceil: 0xe8f0f6, fog: 0xdce8f2, light: 0.9 },
+  { name: "Stone", wall: 0xe6e2dc, floor: 0xb7b1a8, ceil: 0xf0ece6, fog: 0xe8e4de, light: 0.85 }
+];
+const floor = mesh(new THREE.CircleGeometry(1, 64), 0xc4a574, 0, 0, 0);
+floor.rotation.x = -Math.PI / 2;
+floor.scale.set(B, A, 1);
+const ceil = mesh(new THREE.CircleGeometry(1, 64), 0xf4f1ec, 0, 5.2, 0);
+ceil.rotation.x = Math.PI / 2;
+ceil.scale.set(B, A, 1);
+const wallSegs = [];
+for (let i = 0; i < 80; i++) {
+  const t0 = (i / 80) * Math.PI * 2;
+  const t1 = ((i + 1) / 80) * Math.PI * 2;
+  const x = Math.cos(t0) * B, z = Math.sin(t0) * A;
+  const x2 = Math.cos(t1) * B, z2 = Math.sin(t1) * A;
+  const w = Math.hypot(x2 - x, z2 - z) + 0.04;
+  const seg = mesh(new THREE.BoxGeometry(w, 5.2, 0.18), 0xf7f4ef, (x + x2) / 2, 2.6, (z + z2) / 2);
+  seg.rotation.y = Math.atan2(x2 - x, z2 - z);
+  wallSegs.push(seg);
 }
-bench(0, -6);
-bench(0, -22);
+function applyStyle(i) {
+  const s = STYLES[i % STYLES.length];
+  floor.material.color.set(s.floor);
+  ceil.material.color.set(s.ceil);
+  wallSegs.forEach(w => w.material.color.set(s.wall));
+  scene.background = new THREE.Color(s.fog);
+  scene.fog = new THREE.Fog(s.fog, 12, 40);
+  return s;
+}
+applyStyle(0);
 const pillars = [];
 let account = null, heldAssets = [], ovalBalance = 0;
 // Door
-const doorFrame = mesh(new THREE.BoxGeometry(2.4, 3.4, 0.18), 0x1a1014, 0, 1.7, -41.5);
-const doorLeaf = mesh(new THREE.BoxGeometry(1.6, 2.6, 0.06), 0xd7b56a, 0, 1.6, -41.35);
+const doorFrame = mesh(new THREE.BoxGeometry(2.2, 3.2, 0.16), 0x1a1014, 0, 1.6, -16.2);
+const doorLeaf = mesh(new THREE.BoxGeometry(1.5, 2.4, 0.06), 0xd7b56a, 0, 1.5, -16.05);
 const doorLight = new THREE.PointLight(0x3a8a4a, 0, 6);
-doorLight.position.set(0, 1.8, -40.8);
+doorLight.position.set(0, 1.7, -15.6);
 scene.add(doorLight);
 function updateDoor() {
   const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
@@ -371,21 +385,23 @@ function placePillar(nft, x, z, yaw) {
 }
 let hung = [];
 let wing = 0;
-const WING = 44;
+const ROOM = 100;
 async function fillWing(n) {
   wing = Math.max(0, n);
-  const start = wing * WING + 1;
-  status.textContent = "Wing " + (wing + 1) + " · hanging";
+  const start = wing * ROOM + 1;
+  const style = applyStyle(wing);
+  status.textContent = style.name + " room · hanging";
   let filled = 0;
-  for (let i = 0; i < hung.length; i += 6) {
+  for (let i = 0; i < hung.length; i += 8) {
     const batch = [];
-    for (let j = 0; j < 6 && i + j < hung.length; j++) batch.push(start + i + j);
+    for (let j = 0; j < 8 && i + j < hung.length; j++) batch.push(start + i + j);
     const tokens = await Promise.all(batch.map(id => loadToken(id).catch(() => null)));
     tokens.forEach((nft, j) => {
       const h = hung[i + j];
       if (!h) return;
+      const id = start + i + j;
       if (!nft || !nft.image) {
-        h.frame.nft = { id: start + i + j, name: "Oval " + (start + i + j) };
+        h.frame.nft = { id, name: "Oval " + id };
         h.mat.map = mark;
         h.mat.needsUpdate = true;
         return;
@@ -395,21 +411,20 @@ async function fillWing(n) {
       filled++;
     });
   }
-  status.textContent = "Wing " + (wing + 1) + " · " + filled + " portraits";
-  camera.position.set(0, 1.6, 4);
+  status.textContent = style.name + " room · " + filled + " of 100";
+  camera.position.set(0, 1.6, 2);
 }
 async function furnish() {
-  const slots = [];
-  const gap = 2.2;
-  for (let z = 4; z >= -36; z -= gap) {
-    slots.push({ x: -8.55, y: 1.7, z, yaw: Math.PI / 2 });
-    slots.push({ x: 8.55, y: 1.7, z, yaw: -Math.PI / 2 });
-  }
-  for (let x = -6; x <= 6; x += gap) slots.push({ x, y: 1.7, z: -39.6, yaw: 0 });
-  slots.forEach((s, i) => {
+  for (let i = 0; i < ROOM; i++) {
+    const row = i < 50 ? 0 : 1;
+    const k = i % 50;
+    const ang = (k / 50) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.cos(ang) * (B - 0.55);
+    const z = Math.sin(ang) * (A - 0.55);
+    const yaw = Math.atan2(-x, -z);
     const stub = { id: i + 1, name: "Oval " + (i + 1) };
-    hung.push({ mat: hang(stub, s.x, s.y, s.z, s.yaw), frame: frames[frames.length - 1] });
-  });
+    hung.push({ mat: hang(stub, x, row ? 3.35 : 1.65, z, yaw), frame: frames[frames.length - 1] });
+  }
   await fillWing(0);
 }
 furnish();
@@ -587,11 +602,16 @@ function animate() {
     const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
     camera.position.addScaledVector(forward, -dir.z * speed);
     camera.position.addScaledVector(right, dir.x * speed);
-    camera.position.x = Math.max(-8.2, Math.min(8.2, camera.position.x));
-    camera.position.z = Math.max(-39, Math.min(7, camera.position.z));
-  if (camera.position.z < -37.6 && !window.__wingLock) {
+    const nx = camera.position.x / (B - 1.4);
+    const nz = camera.position.z / (A - 1.4);
+    if (nx * nx + nz * nz > 1) {
+      const s = 1 / Math.sqrt(nx * nx + nz * nz);
+      camera.position.x = nx * s * (B - 1.4);
+      camera.position.z = nz * s * (A - 1.4);
+    }
+  if (camera.position.z < -(A - 2.4) && !window.__wingLock) {
     window.__wingLock = true;
-    fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 1200));
+    fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 1400));
   }
   }
   camera.rotation.order = "YXZ";
