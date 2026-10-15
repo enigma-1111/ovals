@@ -203,7 +203,7 @@ status.textContent = "The room is open.";
 })();
 const pillars = [];
 let account = null, heldAssets = [], ovalBalance = 0;
-const portalZ = -(A - 5.72);
+const portalZ = -(A - 6.864);
 const portal = new THREE.Group();
 portal.position.set(0, 0, portalZ);
 const jamb = new THREE.MeshLambertMaterial({ color: 0xd4af6a });
@@ -553,7 +553,8 @@ async function fillWing(n) {
     });
   }
   status.textContent = style.name + " room · " + filled + " of 100";
-  camera.position.set(0, 1.6, 2);
+  camera.position.set(0, 1.6, 0);
+  yaw = 0; pitch = 0;
 }
 async function furnish() {
   try { status.textContent = 'Hanging the room';
@@ -784,7 +785,7 @@ function animate() {
     }
   if (camera.position.z < portalZ + 0.6 && Math.abs(camera.position.x) < 1.4 && !window.__wingLock) {
     window.__wingLock = true;
-    fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 1400));
+    fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 350));
   }
   }
   camera.rotation.order = "YXZ";
