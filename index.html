@@ -905,30 +905,44 @@ function animate() {
     if (w.mode === "inPortal") {
       w.portalTimer -= 0.016;
       w.mesh.visible = false;
+      w.mesh.scale.set(0.01, 0.01, 0.01);
       if (w.portalTimer <= 0) {
         const spots = portalSpots();
-        const out = spots[Math.floor(Math.random() * spots.length)];
+        let out = spots[Math.floor(Math.random() * spots.length)];
+        if (spots.length > 1 && w.entered) {
+          for (let i = 0; i < 6 && Math.hypot(out.x - w.entered.x, out.z - w.entered.z) < 1; i++) {
+            out = spots[Math.floor(Math.random() * spots.length)];
+          }
+        }
         w.mesh.position.set(out.x, 0, out.z);
         w.mesh.visible = true;
-        w.mode = "wander";
-        const s = spot();
-        w.tx = s[0]; w.tz = s[1]; w.face = s[2]; w.wait = 1 + Math.random() * 3;
+        w.mesh.scale.set(0.3, 0.3, 0.3);
+        w.mode = "outPortal";
+        const cx = out.x * 0.45, cz = out.z * 0.45;
+        w.tx = cx; w.tz = cz; w.face = 0;
       }
       return;
     }
     const dx = w.tx - w.mesh.position.x;
     const dz = w.tz - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.4) {
-      if (w.mode === "toPortal") {
-        w.mode = "inPortal";
-        w.portalTimer = 0.6 + Math.random() * 1.2;
-        w.mesh.visible = false;
-        return;
-      }
+    if (w.mode === "toPortal" && dist < 0.9) {
+      w.entered = { x: w.tx, z: w.tz };
+      w.mode = "inPortal";
+      w.portalTimer = 1.2 + Math.random() * 1.4;
+      w.mesh.visible = false;
+      w.mesh.scale.set(0.01, 0.01, 0.01);
+      return;
+    }
+    if (w.mode === "outPortal") {
+      const grow = Math.min(1, w.mesh.scale.x + 0.02);
+      w.mesh.scale.set(grow, grow, grow);
+      if (dist < 0.5 || grow >= 1) w.mode = "wander";
+    }
+    if (dist < 0.4 && w.mode === "wander") {
       w.wait -= 0.016;
       if (w.wait < 0) {
-        if (Math.random() < 0.35 && portalSpots().length) {
+        if (Math.random() < 0.5 && portalSpots().length) {
           const spots = portalSpots();
           const p = spots[Math.floor(Math.random() * spots.length)];
           w.tx = p.x; w.tz = p.z; w.mode = "toPortal";
@@ -936,13 +950,17 @@ function animate() {
           const s = spot();
           w.tx = s[0]; w.tz = s[1]; w.face = s[2]; w.mode = "wander";
         }
-        w.wait = 2 + Math.random() * 5;
+        w.wait = 1.5 + Math.random() * 4;
       }
       faceYaw(w.mesh, w.face, w.mesh.position.z);
-    } else {
+    } else if (dist >= 0.4) {
       w.mesh.position.x += (dx / dist) * w.speed * 0.016;
       w.mesh.position.z += (dz / dist) * w.speed * 0.016;
       faceYaw(w.mesh, w.tx, w.tz);
+      if (w.mode === "toPortal") {
+        const shrink = Math.max(0.2, 1 - (1.6 - Math.min(dist, 1.6)) / 1.6 * 0.6);
+        w.mesh.scale.set(shrink, shrink, shrink);
+      }
     }
     const swing = Math.sin(w.phase * 7) * 0.4;
     w.armL.rotation.x = swing;
