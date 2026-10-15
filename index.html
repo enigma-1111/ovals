@@ -381,9 +381,26 @@ function dress(name) {
 }
 dress("Cream");
 const walkers = [];
+function inside(x, z) {
+  const nx = x / (B - 3.2);
+  const nz = z / (A - 4.2);
+  return nx * nx + nz * nz < 1;
+}
 function spot() {
-  const wall = Math.random() < 0.5 ? -1 : 1;
-  return [wall * (4.6 + Math.random() * 1.4), 14 - Math.random() * 46, wall * 7.4];
+  for (let i = 0; i < 20; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const r = 0.15 + Math.random() * 0.7;
+    const x = Math.cos(ang) * (B - 3.2) * r;
+    const z = Math.sin(ang) * (A - 4.2) * r;
+    if (inside(x, z)) return [x, z, 0];
+  }
+  return [0, 0, 0];
+}
+function artSpot() {
+  const ang = Math.random() * Math.PI * 2;
+  const x = Math.cos(ang) * (B - 3.6);
+  const z = Math.sin(ang) * (A - 4.6);
+  return [x, z, Math.atan2(-x, -z)];
 }
 function faceYaw(mesh, x, z) {
   mesh.rotation.x = 0;
@@ -946,21 +963,40 @@ function animate() {
     }
     if (dist < 0.4 && w.mode === "wander") {
       w.wait -= 0.016;
+      if (w.mode === "sit") w.mesh.position.y = -0.28;
+      else if (w.mode === "look") faceYaw(w.mesh, w.face || 0, w.mesh.position.z);
       if (w.wait < 0) {
-        if (Math.random() < 0.5 && portalSpots().length) {
+        const roll = Math.random();
+        w.mesh.position.y = 0;
+        if (roll < 0.18 && portalSpots().length) {
           const spots = portalSpots();
           const p = spots[Math.floor(Math.random() * spots.length)];
           w.tx = p.x; w.tz = p.z; w.mode = "toPortal";
+        } else if (roll < 0.42) {
+          const a = artSpot();
+          w.tx = a[0]; w.tz = a[1]; w.face = a[2]; w.mode = "look";
+          w.wait = 4 + Math.random() * 6;
+        } else if (roll < 0.58) {
+          w.mode = "sit";
+          w.wait = 5 + Math.random() * 8;
         } else {
           const s = spot();
           w.tx = s[0]; w.tz = s[1]; w.face = s[2]; w.mode = "wander";
+          w.wait = 1.5 + Math.random() * 3;
         }
-        w.wait = 1.5 + Math.random() * 4;
+        if (w.mode !== "sit" && w.mode !== "look") w.wait = 1.5 + Math.random() * 4;
       }
-      faceYaw(w.mesh, w.face, w.mesh.position.z);
+      if (w.mode !== "look") faceYaw(w.mesh, w.face, w.mesh.position.z);
     } else if (dist >= 0.4) {
-      w.mesh.position.x += (dx / dist) * w.speed * 0.016;
-      w.mesh.position.z += (dz / dist) * w.speed * 0.016;
+      let nx = w.mesh.position.x + (dx / dist) * w.speed * 0.016;
+      let nz = w.mesh.position.z + (dz / dist) * w.speed * 0.016;
+      if (!inside(nx, nz) && w.mode !== "toPortal" && w.mode !== "outPortal") {
+        const s = spot();
+        w.tx = s[0]; w.tz = s[1]; w.mode = "wander";
+      } else {
+        w.mesh.position.x = nx;
+        w.mesh.position.z = nz;
+      }
       faceYaw(w.mesh, w.tx, w.tz);
       if (w.mode === "toPortal") {
         const b = w.baseScale || 1;
