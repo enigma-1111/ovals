@@ -207,6 +207,57 @@ status.textContent = "The room is open.";
   if (!renderer) return;
   camera.rotation.order = "YXZ";
   camera.rotation.y = 1.2;
+
+  dogs.forEach((d) => {
+    d.phase += 0.02;
+    const dx = d.tx - d.mesh.position.x;
+    const dz = d.tz - d.mesh.position.z;
+    const dist = Math.hypot(dx, dz);
+    if (d.mode === "inPortal") {
+      d.wait -= 0.016;
+      d.mesh.visible = false;
+      if (d.wait < 0) {
+        const spots = portalSpots();
+        const out = spots[Math.floor(Math.random() * spots.length)];
+        d.mesh.position.set(out.x, 0, out.z);
+        d.mesh.visible = true;
+        d.mode = "play";
+        d.tx = out.x * 0.5; d.tz = out.z * 0.5;
+      }
+      return;
+    }
+    if (dist < 0.3) {
+      d.wait -= 0.016;
+      if (d.wait < 0) {
+        const roll = Math.random();
+        if (roll < 0.3) {
+          d.tx = ball.position.x + (Math.random() - 0.5);
+          d.tz = ball.position.z + (Math.random() - 0.5);
+          d.mode = "play";
+          if (Math.random() < 0.3) { ball.position.x += (Math.random() - 0.5) * 2; ball.position.z += (Math.random() - 0.5) * 2; }
+        } else if (roll < 0.5) {
+          d.mode = "lay"; d.wait = 3 + Math.random() * 4;
+        } else if (roll < 0.7 && walkers.length) {
+          const n = walkers[Math.floor(Math.random() * walkers.length)];
+          d.tx = n.mesh.position.x + 0.5; d.tz = n.mesh.position.z + 0.3; d.mode = "follow";
+        } else if (roll < 0.82 && portalSpots().length) {
+          const p = portalSpots()[Math.floor(Math.random() * portalSpots().length)];
+          d.tx = p.x; d.tz = p.z; d.mode = "toPortal";
+        } else {
+          const s = spot(); d.tx = s[0]; d.tz = s[1]; d.mode = "play";
+        }
+        if (d.mode !== "lay") d.wait = 0.5;
+      }
+    } else {
+      d.mesh.position.x += (dx / dist) * d.speed * 0.016;
+      d.mesh.position.z += (dz / dist) * d.speed * 0.016;
+      d.mesh.rotation.y = Math.atan2(dx, dz);
+    }
+    if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
+    if (d.mode === "lay") { d.mesh.position.y = -0.08; d.tail.rotation.z = 0.2; }
+    else { d.mesh.position.y = Math.abs(Math.sin(d.phase * 10)) * 0.02; d.tail.rotation.z = 0.8 + Math.sin(d.phase * 8) * 0.4; }
+  });
+  ball.position.y = 0.12 + Math.abs(Math.sin(performance.now() * 0.003)) * 0.04;
   renderer.render(scene, camera);
 })();
 const pillars = [];
@@ -514,6 +565,44 @@ function clearCrowd() {
   walkers.forEach(w => scene.remove(w.mesh));
   walkers.length = 0;
 }
+
+const dogs = [];
+const ball = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), new THREE.MeshLambertMaterial({ color: 0xc45a4a }));
+ball.position.set(1, 0.12, 1);
+scene.add(ball);
+function dog(x, z, color) {
+  const g = new THREE.Group();
+  const fur = new THREE.MeshLambertMaterial({ color });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.18), fur);
+  body.position.y = 0.22;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), fur);
+  head.position.set(0.2, 0.32, 0);
+  const earL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), fur);
+  earL.position.set(0.16, 0.4, 0.06);
+  const earR = earL.clone(); earR.position.z = -0.06;
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), fur);
+  tail.position.set(-0.2, 0.3, 0);
+  tail.rotation.z = 0.8;
+  const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 6), fur);
+  [[0.1, 0.08], [0.1, -0.08], [-0.1, 0.08], [-0.1, -0.08]].forEach(([lx, lz]) => {
+    const l = leg.clone(); l.position.set(lx, 0.07, lz); g.add(l);
+  });
+  g.add(body, head, earL, earR, tail);
+  g.position.set(x, 0, z);
+  scene.add(g);
+  dogs.push({ mesh: g, tx: x, tz: z, mode: "play", wait: 1, phase: Math.random() * 6, tail, speed: 0.6 + Math.random() * 0.4 });
+}
+function placeDogs(room) {
+  dogs.forEach(d => scene.remove(d.mesh));
+  dogs.length = 0;
+  const rnd = roomRand(room + 33);
+  const colors = [0xc4a574, 0x8a5a3a, 0xf1d2b8, 0x4a2418, 0xd7a87a, 0x2c241c, 0xe8c4a0, 0x6b4423];
+  for (let i = 0; i < 10; i++) {
+    const ang = rnd() * Math.PI * 2;
+    const r = 0.2 + rnd() * 0.6;
+    dog(Math.cos(ang) * (B - 4) * r, Math.sin(ang) * (A - 5) * r, colors[i % colors.length]);
+  }
+}
 function crowd(room) {
   clearCrowd();
   const rnd = roomRand(room + 7);
@@ -645,6 +734,7 @@ async function fillWing(n) {
   const style = applyStyle(wing);
   status.textContent = style.name + " room · hanging";
   crowd(wing);
+  placeDogs(wing);
   placeRandomPortals(wing);
   let filled = 0;
   for (let i = 0; i < hung.length; i += 8) {
@@ -1113,6 +1203,57 @@ function animate() {
       w.mesh.position.y = 0;
     }
   });
+
+  dogs.forEach((d) => {
+    d.phase += 0.02;
+    const dx = d.tx - d.mesh.position.x;
+    const dz = d.tz - d.mesh.position.z;
+    const dist = Math.hypot(dx, dz);
+    if (d.mode === "inPortal") {
+      d.wait -= 0.016;
+      d.mesh.visible = false;
+      if (d.wait < 0) {
+        const spots = portalSpots();
+        const out = spots[Math.floor(Math.random() * spots.length)];
+        d.mesh.position.set(out.x, 0, out.z);
+        d.mesh.visible = true;
+        d.mode = "play";
+        d.tx = out.x * 0.5; d.tz = out.z * 0.5;
+      }
+      return;
+    }
+    if (dist < 0.3) {
+      d.wait -= 0.016;
+      if (d.wait < 0) {
+        const roll = Math.random();
+        if (roll < 0.3) {
+          d.tx = ball.position.x + (Math.random() - 0.5);
+          d.tz = ball.position.z + (Math.random() - 0.5);
+          d.mode = "play";
+          if (Math.random() < 0.3) { ball.position.x += (Math.random() - 0.5) * 2; ball.position.z += (Math.random() - 0.5) * 2; }
+        } else if (roll < 0.5) {
+          d.mode = "lay"; d.wait = 3 + Math.random() * 4;
+        } else if (roll < 0.7 && walkers.length) {
+          const n = walkers[Math.floor(Math.random() * walkers.length)];
+          d.tx = n.mesh.position.x + 0.5; d.tz = n.mesh.position.z + 0.3; d.mode = "follow";
+        } else if (roll < 0.82 && portalSpots().length) {
+          const p = portalSpots()[Math.floor(Math.random() * portalSpots().length)];
+          d.tx = p.x; d.tz = p.z; d.mode = "toPortal";
+        } else {
+          const s = spot(); d.tx = s[0]; d.tz = s[1]; d.mode = "play";
+        }
+        if (d.mode !== "lay") d.wait = 0.5;
+      }
+    } else {
+      d.mesh.position.x += (dx / dist) * d.speed * 0.016;
+      d.mesh.position.z += (dz / dist) * d.speed * 0.016;
+      d.mesh.rotation.y = Math.atan2(dx, dz);
+    }
+    if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
+    if (d.mode === "lay") { d.mesh.position.y = -0.08; d.tail.rotation.z = 0.2; }
+    else { d.mesh.position.y = Math.abs(Math.sin(d.phase * 10)) * 0.02; d.tail.rotation.z = 0.8 + Math.sin(d.phase * 8) * 0.4; }
+  });
+  ball.position.y = 0.12 + Math.abs(Math.sin(performance.now() * 0.003)) * 0.04;
   renderer.render(scene, camera);
 }
 animate();
