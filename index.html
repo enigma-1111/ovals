@@ -57,6 +57,7 @@
   <button id="wing-prev">Prev room</button>
   <button id="wing-next">Next room</button>
   <input id="jump" inputmode="numeric" placeholder="Oval #" style="width:84px;text-align:center">
+  <button id="yours" style="display:none">Yours</button>
   <button id="jump-go">Go</button>
 </div>
 <div id="plaque"><button id="plaque-x" style="position:absolute;top:6px;right:8px;border:0;background:transparent;color:#2b2116;font-size:18px;line-height:1">×</button></div>
@@ -174,6 +175,28 @@ scene.add(seam);
 const centerRug = new THREE.Mesh(new THREE.CircleGeometry(3.2, 40), new THREE.MeshLambertMaterial({ color: 0x8a5a3a }));
 centerRug.rotation.x = -Math.PI / 2; centerRug.position.y = 0.02;
 scene.add(centerRug);
+const rugLight = new THREE.PointLight(0xffe0a8, 0.7, 14);
+rugLight.position.set(0, 2.4, 0);
+scene.add(rugLight);
+const plate = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.5), new THREE.MeshBasicMaterial({ transparent: true }));
+plate.rotation.x = -Math.PI / 2;
+plate.position.set(0, 0.03, 1.6);
+scene.add(plate);
+function setPlate(text) {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 96;
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, 512, 96);
+  ctx.fillStyle = "#2b2116";
+  ctx.font = "600 42px Palatino, Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 256, 48);
+  const tex = new THREE.CanvasTexture(c);
+  plate.material.map = tex;
+  plate.material.needsUpdate = true;
+}
+setPlate("1 – 100");
 const ceil = mesh(new THREE.CircleGeometry(1, 64), 0xf4f1ec, 0, 5.8, 0);
 ceil.rotation.x = Math.PI / 2;
 ceil.scale.set(B, A, 1);
@@ -270,7 +293,10 @@ function makePortal(title, x, z, dest) {
   const tex = new THREE.CanvasTexture(c);
   const label = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
   label.position.set(0, 1.15, 0.02);
-  g.add(oval, step, glow, label);
+  const doorGlow = new THREE.Mesh(new THREE.CircleGeometry(0.7, 24), new THREE.MeshBasicMaterial({ color: 0xf6e7c1, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+  doorGlow.rotation.x = -Math.PI / 2;
+  doorGlow.position.set(0, 0.03, 0.9);
+  g.add(oval, step, glow, label, doorGlow);
   scene.add(g);
   randomPortals.push({ mesh: g, x, z, dest, face });
   return g;
@@ -715,6 +741,7 @@ async function fillWing(n) {
     });
   }
   status.textContent = style.name + " room · " + start + "–" + (start + 99);
+  setPlate(start + " – " + (start + 99));
   markHeld();
   camera.position.set(0, 1.6, 0);
   yaw = Math.PI; pitch = 0;
@@ -762,6 +789,21 @@ function jumpTo() {
   fillWing(Math.floor((n - 1) / 100));
   status.textContent = "Opening the room for " + n + ".";
 }
+
+let yoursIndex = 0;
+function refreshYours() {
+  const btn = document.getElementById("yours");
+  if (!heldAssets.length) { btn.style.display = "none"; return; }
+  btn.style.display = "";
+  btn.textContent = "Yours " + heldAssets.length;
+}
+document.getElementById("yours").onclick = () => {
+  if (!heldAssets.length) return;
+  const id = heldAssets[yoursIndex % heldAssets.length];
+  yoursIndex++;
+  fillWing(Math.floor((id - 1) / 100));
+  status.textContent = "Opening your oval " + id + ".";
+};
 document.getElementById("jump-go").onclick = jumpTo;
 document.getElementById("jump").addEventListener("keydown", (e) => { if (e.key === "Enter") jumpTo(); });
 const keys = {};
@@ -828,7 +870,8 @@ function tryOpenPlaque(e) {
   p.style.display = "block";
   const n = f.nft || {};
   const bits = [n.year, n.method, n.gaze, n.epoch].filter(Boolean).join(" · ");
-  p.innerHTML = "<button id='plaque-x' style='position:absolute;top:6px;right:8px;border:0;background:transparent;color:#2b2116;font-size:18px;line-height:1'>×</button><b>" + (n.name || ("Oval " + n.id)) + "</b>" +
+  const img = n.image ? "<img src='" + n.image + "' alt='' style='width:140px;height:180px;object-fit:cover;border-radius:80px;margin:6px auto;display:block;border:2px solid #c6a15b'>" : "";
+  p.innerHTML = "<button id='plaque-x' style='position:absolute;top:6px;right:8px;border:0;background:transparent;color:#2b2116;font-size:18px;line-height:1'>×</button>" + img + "<b>" + (n.name || ("Oval " + n.id)) + "</b>" +
     (bits ? "<span class='meta'>" + bits + "</span>" : "<span class='meta'>Oval " + n.id + "</span>") +
     "<a href='" + sea(n.id) + "' target='_blank' rel='noopener'>View on OpenSea</a>";
 }
@@ -898,6 +941,7 @@ async function enter(address) {
   } catch (e) { status.textContent = "Could not read the chain."; }
   refreshClaims();
   markHeld();
+  refreshYours();
 }
 function refreshClaims() {
   const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
@@ -1047,6 +1091,10 @@ function animate() {
         } else if (roll < 0.24) {
           const a = artSpot();
           w.tx = a[0]; w.tz = a[1]; w.face = a[2]; w.mode = "look"; w.wait = 4 + Math.random() * 6;
+          if (Math.random() < 0.4) {
+            const other = walkers.find(o => o !== w && o.mode === "wander");
+            if (other) { other.tx = a[0] + 0.6; other.tz = a[1]; other.face = a[2]; other.mode = "look"; other.wait = 3 + Math.random() * 4; }
+          }
         } else if (roll < 0.34) {
           w.mode = "sit"; w.wait = 5 + Math.random() * 8;
         } else if (roll < 0.44) {
