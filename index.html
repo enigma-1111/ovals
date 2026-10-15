@@ -235,6 +235,61 @@ scene.add(portal);
 const portalLight = new THREE.PointLight(0xffe8b0, 0.7, 8);
 portalLight.position.set(0, 2.2, portalZ + 0.4);
 scene.add(portalLight);
+
+const randomPortals = [];
+function makePortal(title, x, z, dest) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  const face = Math.atan2(-x, -z);
+  g.rotation.y = face;
+  const jambM = new THREE.MeshLambertMaterial({ color: 0xd4af6a });
+  const lj = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.2, 0.16), jambM);
+  lj.position.set(-1.15, 1.6, 0);
+  const rj = lj.clone();
+  rj.position.x = 1.15;
+  const lint = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.16, 0.16), jambM);
+  lint.position.set(0, 3.2, 0);
+  const step = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 0.7), new THREE.MeshLambertMaterial({ color: 0xc4a574 }));
+  step.position.set(0, 0.06, 0.2);
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 2.8), new THREE.MeshBasicMaterial({ color: 0xf6e7c1, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+  glow.position.set(0, 1.6, 0);
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 128;
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, 512, 128);
+  ctx.fillStyle = "#2b2116";
+  ctx.font = "600 48px Palatino, Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(title, 256, 64);
+  const tex = new THREE.CanvasTexture(c);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+  label.position.set(0, 3.7, 0);
+  g.add(lj, rj, lint, step, glow, label);
+  scene.add(g);
+  randomPortals.push({ mesh: g, x, z, dest });
+  return g;
+}
+function placeRandomPortals(room) {
+  randomPortals.forEach(p => scene.remove(p.mesh));
+  randomPortals.length = 0;
+  const rnd = roomRand(room + 91);
+  const used = [];
+  for (let i = 0; i < 9; i++) {
+    let x, z, ok = false, tries = 0;
+    while (!ok && tries < 30) {
+      const ang = rnd() * Math.PI * 2;
+      const r = 0.2 + rnd() * 0.45;
+      x = Math.cos(ang) * (B - 5) * r;
+      z = Math.sin(ang) * (A - 6) * r;
+      ok = Math.hypot(x, z - portalZ) > 4 && used.every(u => Math.hypot(x - u[0], z - u[1]) > 3.5);
+      tries++;
+    }
+    used.push([x, z]);
+    const dest = Math.floor(rnd() * 100);
+    makePortal("TO " + (dest * 100 + 1), x, z, dest);
+  }
+}
 function clearDetails() {
   while (details.children.length) details.remove(details.children[0]);
 }
@@ -530,6 +585,7 @@ async function fillWing(n) {
   const style = applyStyle(wing);
   status.textContent = style.name + " room · hanging";
   crowd(wing);
+  placeRandomPortals(wing);
   let filled = 0;
   for (let i = 0; i < hung.length; i += 8) {
     const batch = [];
@@ -785,9 +841,16 @@ function animate() {
     }
   const dxp = camera.position.x;
   const dzp = camera.position.z - portalZ;
-  if (Math.hypot(dxp, dzp) < 2.2 && !window.__wingLock) {
+  let dest = null;
+  if (Math.hypot(dxp, dzp) < 2.2) dest = wing + 1;
+  if (dest == null) {
+    for (const p of randomPortals) {
+      if (Math.hypot(camera.position.x - p.x, camera.position.z - p.z) < 2.0) { dest = p.dest; break; }
+    }
+  }
+  if (dest != null && !window.__wingLock) {
     window.__wingLock = true;
-    fillWing(wing + 1).then(() => setTimeout(() => window.__wingLock = false, 200));
+    fillWing(dest).then(() => setTimeout(() => window.__wingLock = false, 200));
   }
   }
   camera.rotation.order = "YXZ";
