@@ -275,7 +275,7 @@ function makePortal(title, x, z, dest) {
   label.position.set(0, 2.5, 0);
   g.add(lj, rj, lint, step, glow, label);
   scene.add(g);
-  randomPortals.push({ mesh: g, x, z, dest });
+  randomPortals.push({ mesh: g, x, z, dest, face });
   return g;
 }
 function placeRandomPortals(room) {
@@ -932,18 +932,24 @@ function animate() {
       camera.position.x = nx * s * (B - 1.4);
       camera.position.z = nz * s * (A - 1.4);
     }
-  const dxp = camera.position.x;
-  const dzp = camera.position.z - portalZ;
+  function inFront(px, pz, face, reach) {
+    const dx = camera.position.x - px;
+    const dz = camera.position.z - pz;
+    if (Math.hypot(dx, dz) > reach) return false;
+    const fx = Math.sin(face), fz = Math.cos(face);
+    return dx * fx + dz * fz > 0.15;
+  }
   let dest = null;
-  if (Math.hypot(dxp, dzp) < 2.2) dest = wing + 1;
+  const mainFace = 0;
+  if (inFront(0, portalZ, mainFace, 0.85) && Math.abs(camera.position.x) < 0.9) dest = wing + 1;
   if (dest == null) {
     for (const p of randomPortals) {
-      if (Math.hypot(camera.position.x - p.x, camera.position.z - p.z) < 2.0) { dest = p.dest; break; }
+      if (inFront(p.x, p.z, p.face, 0.85)) { dest = p.dest; break; }
     }
   }
   if (dest != null && !window.__wingLock) {
     window.__wingLock = true;
-    fillWing(dest).then(() => setTimeout(() => window.__wingLock = false, 200));
+    fillWing(dest).then(() => setTimeout(() => window.__wingLock = false, 1600));
   }
   }
   camera.rotation.order = "YXZ";
