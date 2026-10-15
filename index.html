@@ -532,7 +532,7 @@ function numberPlate(id) {
 function hang(nft, x, y, z, yaw) {
   const g = new THREE.Group();
   const w = 1.35, h = 1.7;
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.08), new THREE.MeshLambertMaterial({ color: 0xd4af6a }));
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.08), new THREE.MeshLambertMaterial({ color: 0x6b5a45 }));
   const artMat = new THREE.MeshBasicMaterial({ map: mark, color: 0xffffff, side: THREE.DoubleSide });
   const art = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.22, h - 0.22), artMat);
   art.position.z = 0.05;
@@ -543,7 +543,7 @@ function hang(nft, x, y, z, yaw) {
   g.position.set(x, y, z);
   g.rotation.y = yaw;
   scene.add(g);
-  const rec = { mesh: art, nft, mat: artMat, plateMat };
+  const rec = { mesh: art, nft, mat: artMat, plateMat, frame };
   frames.push(rec);
   if (nft && nft.image) loader.load(nft.image, (tex) => { artMat.map = tex; artMat.needsUpdate = true; });
   return rec;
@@ -579,6 +579,14 @@ function placePillar(nft, x, z, yaw) {
 let hung = [];
 let wing = 0;
 const ROOM = 100;
+function markHeld() {
+  const held = new Set(heldAssets);
+  hung.forEach(h => {
+    if (!h.frame) return;
+    const id = h.nft && h.nft.id;
+    h.frame.material.color.set(held.has(id) ? 0xd4af6a : 0x6b5a45);
+  });
+}
 async function fillWing(n) {
   wing = Math.max(0, n);
   const start = wing * ROOM + 1;
@@ -609,6 +617,7 @@ async function fillWing(n) {
     });
   }
   status.textContent = style.name + " room · " + filled + " of 100";
+  markHeld();
   camera.position.set(0, 1.6, 0);
   yaw = Math.PI; pitch = 0;
 }
@@ -764,6 +773,7 @@ async function enter(address) {
     status.textContent = msg;
   } catch (e) { status.textContent = "Could not read the chain."; }
   refreshClaims();
+  markHeld();
 }
 function refreshClaims() {
   const live = OVAL_TOKEN && OVAL_TOKEN !== "0x1234";
