@@ -1009,19 +1009,26 @@ function animate() {
     } else if (dist >= 0.4) {
       let nx = w.mesh.position.x + (dx / dist) * w.speed * 0.016;
       let nz = w.mesh.position.z + (dz / dist) * w.speed * 0.016;
-      if ((!inside(nx, nz) && w.mode !== "toPortal" && w.mode !== "outPortal") || blocked(nx, nz, w.mode)) {
-        const side = Math.random() < 0.5 ? 1 : -1;
-        const px = -dz / dist, pz = dx / dist;
-        nx = w.mesh.position.x + px * side * 0.04;
-        nz = w.mesh.position.z + pz * side * 0.04;
-        if (inside(nx, nz) && !blocked(nx, nz, w.mode)) {
-          w.mesh.position.x = nx;
-          w.mesh.position.z = nz;
+      const bad = (!inside(nx, nz) && w.mode !== "toPortal" && w.mode !== "outPortal") || blocked(nx, nz, w.mode);
+      if (bad) {
+        w.stuck = (w.stuck || 0) + 1;
+        let moved = false;
+        for (const side of [1, -1]) {
+          const px = -dz / dist, pz = dx / dist;
+          const sx = w.mesh.position.x + px * side * 0.12;
+          const sz = w.mesh.position.z + pz * side * 0.12;
+          if (inside(sx, sz) && !blocked(sx, sz, w.mode)) {
+            w.mesh.position.x = sx; w.mesh.position.z = sz; moved = true; break;
+          }
         }
-        if (w.mode !== "toPortal") { const s = spot(); w.tx = s[0]; w.tz = s[1]; }
+        if (!moved && w.stuck > 40) {
+          const s = spot();
+          w.tx = s[0]; w.tz = s[1]; w.mode = "wander"; w.stuck = 0;
+        }
       } else {
         w.mesh.position.x = nx;
         w.mesh.position.z = nz;
+        w.stuck = 0;
       }
       if (dist > 0.5) faceYaw(w.mesh, w.tx, w.tz);
       if (w.mode === "toPortal") {
