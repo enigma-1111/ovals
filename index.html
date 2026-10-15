@@ -1214,19 +1214,10 @@ function animate() {
     const dx = d.tx - d.mesh.position.x;
     const dz = d.tz - d.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (d.mode === "inPortal") {
-      d.wait -= 0.016;
-      d.mesh.visible = false;
-      if (d.wait < 0) {
-        const spots = portalSpots();
-        const out = spots[Math.floor(Math.random() * spots.length)];
-        d.mesh.position.set(out.x * 0.6, 0, out.z * 0.6);
-        d.mesh.visible = true;
-        d.mode = "play";
-        const s = spot();
-        d.tx = s[0]; d.tz = s[1];
-      }
-      return;
+    if (d.mode === "inPortal" || d.mode === "toPortal" || d.mode === "gone") {
+      d.mode = "play";
+      d.mesh.visible = true;
+      const s = spot(); d.tx = s[0]; d.tz = s[1];
     }
     if (dist < 0.3) {
       d.wait -= 0.016;
@@ -1241,9 +1232,6 @@ function animate() {
         } else if (roll < 0.7 && walkers.length) {
           const n = walkers[Math.floor(Math.random() * walkers.length)];
           d.tx = n.mesh.position.x + 0.5; d.tz = n.mesh.position.z + 0.3; d.mode = "follow";
-        } else if (roll < 0.82 && portalSpots().length) {
-          const p = portalSpots()[Math.floor(Math.random() * portalSpots().length)];
-          d.tx = p.x; d.tz = p.z; d.mode = "toPortal";
         } else {
           const s = spot(); d.tx = s[0]; d.tz = s[1]; d.mode = "play";
         }
@@ -1270,7 +1258,11 @@ function animate() {
         if (inside(bx, bz)) { ball.position.x = bx; ball.position.z = bz; }
         d.tx = ball.position.x; d.tz = ball.position.z;
       }
-      if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
+      d.mesh.visible = true;
+    if (!inside(d.mesh.position.x, d.mesh.position.z)) {
+      d.mesh.position.x *= 0.85; d.mesh.position.z *= 0.85;
+      const s = spot(); d.tx = s[0]; d.tz = s[1]; d.mode = "play";
+    }
     if (d.mode === "lay") { d.mesh.position.y = -0.08; d.tail.rotation.z = 0.2; }
     else { d.mesh.position.y = Math.abs(Math.sin(d.phase * 10)) * 0.02; d.tail.rotation.z = 0.8 + Math.sin(d.phase * 8) * 0.4; }
   });
