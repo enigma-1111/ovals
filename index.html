@@ -966,7 +966,7 @@ function animate() {
     const dx = w.tx - w.mesh.position.x;
     const dz = w.tz - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (w.mode === "toPortal" && dist < 0.9) {
+    if (w.mode === "toPortal" && dist < 1.4) {
       w.entered = { x: w.tx, z: w.tz };
       w.mode = "inPortal";
       w.portalTimer = 1.2 + Math.random() * 1.4;
@@ -982,7 +982,7 @@ function animate() {
     }
     if (dist < 0.4 && w.mode === "wander") {
       w.wait -= 0.016;
-      if (w.mode === "sit") w.mesh.position.y = -0.28;
+      if (w.mode === "sit") w.mesh.position.y = -0.08 * (w.baseScale || 1);
       else if (w.mode === "look") faceYaw(w.mesh, w.face || 0, w.mesh.position.z);
       if (w.wait < 0) {
         const roll = Math.random();
@@ -1005,7 +1005,7 @@ function animate() {
         }
         if (w.mode !== "sit" && w.mode !== "look") w.wait = 1.5 + Math.random() * 4;
       }
-      if (w.mode !== "look") faceYaw(w.mesh, w.face, w.mesh.position.z);
+      if (w.mode === "look" && w.face) w.mesh.rotation.y = w.face;
     } else if (dist >= 0.4) {
       let nx = w.mesh.position.x + (dx / dist) * w.speed * 0.016;
       let nz = w.mesh.position.z + (dz / dist) * w.speed * 0.016;
@@ -1023,7 +1023,7 @@ function animate() {
         w.mesh.position.x = nx;
         w.mesh.position.z = nz;
       }
-      faceYaw(w.mesh, w.tx, w.tz);
+      if (dist > 0.5) faceYaw(w.mesh, w.tx, w.tz);
       if (w.mode === "toPortal") {
         const b = w.baseScale || 1;
         const shrink = Math.max(b * 0.2, b * (1 - (1.6 - Math.min(dist, 1.6)) / 1.6 * 0.6));
@@ -1036,7 +1036,7 @@ function animate() {
     w.legL.rotation.x = -swing * 0.7;
     w.legR.rotation.x = swing * 0.7;
     w.body.rotation.x = 0;
-    if (w.mode === 'sit') w.mesh.position.y = -0.28;
+    if (w.mode === 'sit') w.mesh.position.y = -0.08 * (w.baseScale || 1);
     else w.mesh.position.y = Math.abs(Math.sin(w.phase * 7)) * 0.02;
   });
   renderer.render(scene, camera);
