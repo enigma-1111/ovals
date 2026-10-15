@@ -291,6 +291,11 @@ function placeRandomPortals(room) {
     makePortal("TO " + (dest * 100 + 1), x, z, dest);
   }
 }
+function portalSpots() {
+  const spots = [{ x: 0, z: portalZ }];
+  randomPortals.forEach(p => spots.push({ x: p.x, z: p.z }));
+  return spots;
+}
 function clearDetails() {
   while (details.children.length) details.remove(details.children[0]);
 }
@@ -430,7 +435,7 @@ function person(x, z, color, female, skinHex, hairHex) {
     g.position.set(x, 0, z);
     scene.add(g);
     const s = spot();
-    walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.5 + Math.random() * 0.3, armL, armR, legL, legR, body: chest });
+    walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.5 + Math.random() * 0.3, armL, armR, legL, legR, body: chest, mode: 'wander', portalTimer: 0 });
     return g;
   }
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.72, 0.22), cloth);
@@ -454,7 +459,7 @@ function person(x, z, color, female, skinHex, hairHex) {
   g.position.set(x, 0, z);
   scene.add(g);
   const s = spot();
-  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.55 + Math.random() * 0.35, armL, armR, legL, legR, body });
+  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.55 + Math.random() * 0.35, armL, armR, legL, legR, body, mode: 'wander', portalTimer: 0 });
   return g;
 }
 const CLOTH = [0x8a3a32, 0x2f4a62, 0x3d3a34, 0xc45a4a, 0x4a5560, 0x6a3a52, 0x7a4a62, 0x2c3a4a];
@@ -897,14 +902,41 @@ function animate() {
   camera.rotation.x = pitch;
   walkers.forEach((w) => {
     w.phase += 0.05;
+    if (w.mode === "inPortal") {
+      w.portalTimer -= 0.016;
+      w.mesh.visible = false;
+      if (w.portalTimer <= 0) {
+        const spots = portalSpots();
+        const out = spots[Math.floor(Math.random() * spots.length)];
+        w.mesh.position.set(out.x, 0, out.z);
+        w.mesh.visible = true;
+        w.mode = "wander";
+        const s = spot();
+        w.tx = s[0]; w.tz = s[1]; w.face = s[2]; w.wait = 1 + Math.random() * 3;
+      }
+      return;
+    }
     const dx = w.tx - w.mesh.position.x;
     const dz = w.tz - w.mesh.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.3) {
+    if (dist < 0.4) {
+      if (w.mode === "toPortal") {
+        w.mode = "inPortal";
+        w.portalTimer = 0.6 + Math.random() * 1.2;
+        w.mesh.visible = false;
+        return;
+      }
       w.wait -= 0.016;
       if (w.wait < 0) {
-        const s = spot();
-        w.tx = s[0]; w.tz = s[1]; w.face = s[2]; w.wait = 2 + Math.random() * 5;
+        if (Math.random() < 0.35 && portalSpots().length) {
+          const spots = portalSpots();
+          const p = spots[Math.floor(Math.random() * spots.length)];
+          w.tx = p.x; w.tz = p.z; w.mode = "toPortal";
+        } else {
+          const s = spot();
+          w.tx = s[0]; w.tz = s[1]; w.face = s[2]; w.mode = "wander";
+        }
+        w.wait = 2 + Math.random() * 5;
       }
       faceYaw(w.mesh, w.face, w.mesh.position.z);
     } else {
