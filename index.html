@@ -982,7 +982,7 @@ function animate() {
       w.mesh.scale.set(grow, grow, grow);
       if (grow >= b) w.mode = "wander";
     }
-    const idle = w.mode === "sit" || w.mode === "look" || w.mode === "glance";
+    const idle = ["sit","look","glance","point","cross","back","wave","lean"].includes(w.mode);
     if (idle) {
       w.wait -= 0.016;
       if (w.mode === "sit") w.mesh.position.y = -0.06 * b;
@@ -995,16 +995,24 @@ function animate() {
       if (w.wait < 0) {
         w.mesh.position.y = 0;
         const roll = Math.random();
-        if (roll < 0.12 && portalSpots().length) {
+        if (roll < 0.1 && portalSpots().length) {
           const p = portalSpots()[Math.floor(Math.random() * portalSpots().length)];
           w.tx = p.x; w.tz = p.z; w.mode = "toPortal";
-        } else if (roll < 0.32) {
+        } else if (roll < 0.24) {
           const a = artSpot();
           w.tx = a[0]; w.tz = a[1]; w.face = a[2]; w.mode = "look"; w.wait = 4 + Math.random() * 6;
-        } else if (roll < 0.44) {
+        } else if (roll < 0.34) {
           w.mode = "sit"; w.wait = 5 + Math.random() * 8;
-        } else if (roll < 0.56) {
-          w.mode = "glance"; w.face = w.mesh.rotation.y + (Math.random() < 0.5 ? 1 : -1); w.wait = 1.5 + Math.random() * 2;
+        } else if (roll < 0.44) {
+          w.mode = "point"; w.wait = 2 + Math.random() * 3;
+        } else if (roll < 0.54) {
+          w.mode = "cross"; w.wait = 3 + Math.random() * 4;
+        } else if (roll < 0.64) {
+          w.mode = "back"; w.wait = 2 + Math.random() * 3;
+        } else if (roll < 0.72) {
+          w.mode = "wave"; w.wait = 1.5 + Math.random() * 2;
+        } else if (roll < 0.8) {
+          w.mode = "lean"; w.wait = 2 + Math.random() * 3;
         } else {
           const s = spot(); w.tx = s[0]; w.tz = s[1]; w.mode = "wander";
         }
@@ -1061,6 +1069,41 @@ function animate() {
       w.legR.rotation.x = 0;
       w.body.rotation.x = nod;
       w.mesh.position.y = 0;
+    } else if (w.mode === "point") {
+      w.armL.rotation.x = -1.2;
+      w.armR.rotation.x = 0.2;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      w.body.rotation.x = 0.05;
+      w.mesh.position.y = 0;
+    } else if (w.mode === "cross") {
+      w.armL.rotation.x = -0.6;
+      w.armR.rotation.x = -0.6;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      w.body.rotation.x = 0;
+      w.mesh.position.y = 0;
+    } else if (w.mode === "back") {
+      w.armL.rotation.x = 0.8;
+      w.armR.rotation.x = 0.8;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      w.body.rotation.x = -0.04;
+      w.mesh.position.y = 0;
+    } else if (w.mode === "wave") {
+      w.armL.rotation.x = -1.4 + Math.sin(w.phase * 6) * 0.3;
+      w.armR.rotation.x = 0.1;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      w.body.rotation.x = 0;
+      w.mesh.position.y = 0;
+    } else if (w.mode === "lean") {
+      w.armL.rotation.x = 0.2;
+      w.armR.rotation.x = 0.2;
+      w.legL.rotation.x = 0.1;
+      w.legR.rotation.x = -0.1;
+      w.body.rotation.x = 0.25;
+      w.mesh.position.y = -0.04 * b;
     } else {
       w.armL.rotation.x = 0;
       w.armR.rotation.x = 0;
