@@ -1245,20 +1245,33 @@ function animate() {
         if (d.mode !== "lay") d.wait = 0.5;
       }
     } else {
-      d.mesh.position.x += (dx / dist) * d.speed * 0.016;
-      d.mesh.position.z += (dz / dist) * d.speed * 0.016;
+      const nx = d.mesh.position.x + (dx / dist) * d.speed * 0.016;
+      const nz = d.mesh.position.z + (dz / dist) * d.speed * 0.016;
+      if (inside(nx, nz) && d.mode !== "toPortal") {
+        d.mesh.position.x = nx;
+        d.mesh.position.z = nz;
+      } else if (d.mode === "toPortal") {
+        d.mesh.position.x = nx;
+        d.mesh.position.z = nz;
+      } else {
+        const s = spot(); d.tx = s[0]; d.tz = s[1];
+      }
       d.mesh.rotation.y = Math.atan2(dx, dz);
     }
     if (d.mode === "play" && Math.hypot(d.mesh.position.x - ball.position.x, d.mesh.position.z - ball.position.z) < 0.4) {
         const push = Math.atan2(ball.position.x - d.mesh.position.x, ball.position.z - d.mesh.position.z);
-        ball.position.x += Math.sin(push) * 0.5;
-        ball.position.z += Math.cos(push) * 0.5;
+        const bx = ball.position.x + Math.sin(push) * 0.35;
+        const bz = ball.position.z + Math.cos(push) * 0.35;
+        if (inside(bx, bz)) { ball.position.x = bx; ball.position.z = bz; }
         d.tx = ball.position.x; d.tz = ball.position.z;
       }
       if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
     if (d.mode === "lay") { d.mesh.position.y = -0.08; d.tail.rotation.z = 0.2; }
     else { d.mesh.position.y = Math.abs(Math.sin(d.phase * 10)) * 0.02; d.tail.rotation.z = 0.8 + Math.sin(d.phase * 8) * 0.4; }
   });
+  if (!inside(ball.position.x, ball.position.z)) {
+    ball.position.x *= 0.7; ball.position.z *= 0.7;
+  }
   ball.position.y = 0.12 + Math.abs(Math.sin(performance.now() * 0.003)) * 0.04;
   renderer.render(scene, camera);
 }
