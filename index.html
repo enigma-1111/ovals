@@ -523,35 +523,41 @@ scene.add(ball);
 function dog(x, z, color) {
   const g = new THREE.Group();
   const fur = new THREE.MeshLambertMaterial({ color });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.18), fur);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.36), fur);
   body.position.y = 0.22;
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), fur);
-  head.position.set(0.2, 0.32, 0);
+  head.position.set(0, 0.32, 0.2);
   const earL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), fur);
-  earL.position.set(0.16, 0.4, 0.06);
-  const earR = earL.clone(); earR.position.z = -0.06;
+  earL.position.set(0.06, 0.4, 0.16);
+  const earR = earL.clone(); earR.position.x = -0.06;
   const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), fur);
-  tail.position.set(-0.2, 0.3, 0);
-  tail.rotation.z = 0.8;
+  tail.position.set(0, 0.3, -0.2);
+  tail.rotation.x = 0.8;
   const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 6), fur);
-  [[0.1, 0.08], [0.1, -0.08], [-0.1, 0.08], [-0.1, -0.08]].forEach(([lx, lz]) => {
+  [[0.06, 0.1], [-0.06, 0.1], [0.06, -0.1], [-0.06, -0.1]].forEach(([lx, lz]) => {
     const l = leg.clone(); l.position.set(lx, 0.07, lz); g.add(l);
   });
   g.add(body, head, earL, earR, tail);
   g.position.set(x, 0, z);
   scene.add(g);
-  dogs.push({ mesh: g, tx: x, tz: z, mode: "play", wait: 1, phase: Math.random() * 6, tail, speed: 0.6 + Math.random() * 0.4 });
+  dogs.push({ mesh: g, tx: x, tz: z, mode: "play", wait: 1, phase: Math.random() * 6, tail, speed: 0.7 + Math.random() * 0.4 });
 }
+const dogFloor = Array.from({ length: 10 }, (_, i) => (i * 17) % 100);
 function placeDogs(room) {
   dogs.forEach(d => scene.remove(d.mesh));
   dogs.length = 0;
+  const here = dogFloor.map((f, i) => f === (room % 100) ? i : -1).filter(i => i >= 0).slice(0, 2);
+  if (!here.length && (room % 7) === 0) here.push(room % 10);
+  const colors = [0xc4a574, 0x8a5a3a, 0xf1d2b8, 0x4a2418, 0xd7a87a, 0x2c241c, 0xe8c4a0, 0x6b4423, 0xa56b45, 0x3a2218];
   const rnd = roomRand(room + 33);
-  const colors = [0xc4a574, 0x8a5a3a, 0xf1d2b8, 0x4a2418, 0xd7a87a, 0x2c241c, 0xe8c4a0, 0x6b4423];
-  for (let i = 0; i < 10; i++) {
+  here.forEach((id) => {
     const ang = rnd() * Math.PI * 2;
-    const r = 0.2 + rnd() * 0.6;
-    dog(Math.cos(ang) * (B - 4) * r, Math.sin(ang) * (A - 5) * r, colors[i % colors.length]);
-  }
+    const r = 0.3 + rnd() * 0.4;
+    dog(Math.cos(ang) * (B - 5) * r, Math.sin(ang) * (A - 6) * r, colors[id]);
+    dogs[dogs.length - 1].id = id;
+  });
+  ball.visible = dogs.length > 0;
+  if (dogs.length) ball.position.set(dogs[0].mesh.position.x + 1, 0.12, dogs[0].mesh.position.z);
 }
 function crowd(room) {
   clearCrowd();
@@ -1163,12 +1169,9 @@ function animate() {
       d.wait -= 0.016;
       d.mesh.visible = false;
       if (d.wait < 0) {
-        const spots = portalSpots();
-        const out = spots[Math.floor(Math.random() * spots.length)];
-        d.mesh.position.set(out.x, 0, out.z);
-        d.mesh.visible = true;
-        d.mode = "play";
-        d.tx = out.x * 0.5; d.tz = out.z * 0.5;
+        if (d.id != null) dogFloor[d.id] = (dogFloor[d.id] + 1 + Math.floor(Math.random() * 8)) % 100;
+        d.mesh.visible = false;
+        d.mode = "gone";
       }
       return;
     }
@@ -1176,11 +1179,10 @@ function animate() {
       d.wait -= 0.016;
       if (d.wait < 0) {
         const roll = Math.random();
-        if (roll < 0.3) {
-          d.tx = ball.position.x + (Math.random() - 0.5);
-          d.tz = ball.position.z + (Math.random() - 0.5);
+        if (roll < 0.45) {
+          d.tx = ball.position.x;
+          d.tz = ball.position.z;
           d.mode = "play";
-          if (Math.random() < 0.3) { ball.position.x += (Math.random() - 0.5) * 2; ball.position.z += (Math.random() - 0.5) * 2; }
         } else if (roll < 0.5) {
           d.mode = "lay"; d.wait = 3 + Math.random() * 4;
         } else if (roll < 0.7 && walkers.length) {
@@ -1199,7 +1201,13 @@ function animate() {
       d.mesh.position.z += (dz / dist) * d.speed * 0.016;
       d.mesh.rotation.y = Math.atan2(dx, dz);
     }
-    if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
+    if (d.mode === "play" && Math.hypot(d.mesh.position.x - ball.position.x, d.mesh.position.z - ball.position.z) < 0.4) {
+        const push = Math.atan2(ball.position.x - d.mesh.position.x, ball.position.z - d.mesh.position.z);
+        ball.position.x += Math.sin(push) * 0.5;
+        ball.position.z += Math.cos(push) * 0.5;
+        d.tx = ball.position.x; d.tz = ball.position.z;
+      }
+      if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
     if (d.mode === "lay") { d.mesh.position.y = -0.08; d.tail.rotation.z = 0.2; }
     else { d.mesh.position.y = Math.abs(Math.sin(d.phase * 10)) * 0.02; d.tail.rotation.z = 0.8 + Math.sin(d.phase * 8) * 0.4; }
   });
