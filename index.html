@@ -1007,21 +1007,24 @@ function animate() {
       }
       if (w.mode === "look" && w.face) w.mesh.rotation.y = w.face;
     } else if (dist >= 0.4) {
-      let nx = w.mesh.position.x + (dx / dist) * w.speed * 0.016;
-      let nz = w.mesh.position.z + (dz / dist) * w.speed * 0.016;
+      const slow = Math.min(1, dist / 1.8);
+      const pace = (w.speed * 0.016) * (0.35 + 0.65 * slow);
+      const drift = Math.sin(w.phase * 0.6) * 0.15;
+      let nx = w.mesh.position.x + (dx / dist) * pace + (-dz / dist) * drift * 0.02;
+      let nz = w.mesh.position.z + (dz / dist) * pace + (dx / dist) * drift * 0.02;
       const bad = (!inside(nx, nz) && w.mode !== "toPortal" && w.mode !== "outPortal") || blocked(nx, nz, w.mode);
       if (bad) {
         w.stuck = (w.stuck || 0) + 1;
         let moved = false;
         for (const side of [1, -1]) {
           const px = -dz / dist, pz = dx / dist;
-          const sx = w.mesh.position.x + px * side * 0.12;
-          const sz = w.mesh.position.z + pz * side * 0.12;
+          const sx = w.mesh.position.x + px * side * 0.1;
+          const sz = w.mesh.position.z + pz * side * 0.1;
           if (inside(sx, sz) && !blocked(sx, sz, w.mode)) {
             w.mesh.position.x = sx; w.mesh.position.z = sz; moved = true; break;
           }
         }
-        if (!moved && w.stuck > 40) {
+        if (!moved && w.stuck > 30) {
           const s = spot();
           w.tx = s[0]; w.tz = s[1]; w.mode = "wander"; w.stuck = 0;
         }
@@ -1030,19 +1033,26 @@ function animate() {
         w.mesh.position.z = nz;
         w.stuck = 0;
       }
-      if (dist > 0.5) faceYaw(w.mesh, w.tx, w.tz);
+      if (dist > 0.6) {
+        const want = Math.atan2(w.tx - w.mesh.position.x, w.tz - w.mesh.position.z);
+        let d = want - w.mesh.rotation.y;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        w.mesh.rotation.y += d * 0.12;
+      }
       if (w.mode === "toPortal") {
         const b = w.baseScale || 1;
         const shrink = Math.max(b * 0.2, b * (1 - (1.6 - Math.min(dist, 1.6)) / 1.6 * 0.6));
         w.mesh.scale.set(shrink, shrink, shrink);
       }
     }
-    const swing = Math.sin(w.phase * 7) * 0.4;
+    const moving = dist >= 0.4 && w.mode !== "sit" && w.mode !== "look";
+    const swing = moving ? Math.sin(w.phase * 6) * 0.28 : 0;
     w.armL.rotation.x = swing;
     w.armR.rotation.x = -swing;
-    w.legL.rotation.x = -swing * 0.7;
-    w.legR.rotation.x = swing * 0.7;
-    w.body.rotation.x = 0;
+    w.legL.rotation.x = -swing * 0.6;
+    w.legR.rotation.x = swing * 0.6;
+    w.body.rotation.x = moving ? 0.04 : 0;
     if (w.mode === 'sit') w.mesh.position.y = -0.08 * (w.baseScale || 1);
     else w.mesh.position.y = Math.abs(Math.sin(w.phase * 7)) * 0.02;
   });
