@@ -1209,6 +1209,7 @@ function animate() {
   });
 
   dogs.forEach((d) => {
+    if (d.mode === "gone") { d.mode = "play"; d.mesh.visible = true; }
     d.phase += 0.02;
     const dx = d.tx - d.mesh.position.x;
     const dz = d.tz - d.mesh.position.z;
@@ -1217,9 +1218,13 @@ function animate() {
       d.wait -= 0.016;
       d.mesh.visible = false;
       if (d.wait < 0) {
-        if (d.id != null) dogFloor[d.id] = (dogFloor[d.id] + 1 + Math.floor(Math.random() * 8)) % 100;
-        d.mesh.visible = false;
-        d.mode = "gone";
+        const spots = portalSpots();
+        const out = spots[Math.floor(Math.random() * spots.length)];
+        d.mesh.position.set(out.x * 0.6, 0, out.z * 0.6);
+        d.mesh.visible = true;
+        d.mode = "play";
+        const s = spot();
+        d.tx = s[0]; d.tz = s[1];
       }
       return;
     }
