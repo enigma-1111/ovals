@@ -208,56 +208,6 @@ status.textContent = "The room is open.";
   camera.rotation.order = "YXZ";
   camera.rotation.y = 1.2;
 
-  dogs.forEach((d) => {
-    d.phase += 0.02;
-    const dx = d.tx - d.mesh.position.x;
-    const dz = d.tz - d.mesh.position.z;
-    const dist = Math.hypot(dx, dz);
-    if (d.mode === "inPortal") {
-      d.wait -= 0.016;
-      d.mesh.visible = false;
-      if (d.wait < 0) {
-        const spots = portalSpots();
-        const out = spots[Math.floor(Math.random() * spots.length)];
-        d.mesh.position.set(out.x, 0, out.z);
-        d.mesh.visible = true;
-        d.mode = "play";
-        d.tx = out.x * 0.5; d.tz = out.z * 0.5;
-      }
-      return;
-    }
-    if (dist < 0.3) {
-      d.wait -= 0.016;
-      if (d.wait < 0) {
-        const roll = Math.random();
-        if (roll < 0.3) {
-          d.tx = ball.position.x + (Math.random() - 0.5);
-          d.tz = ball.position.z + (Math.random() - 0.5);
-          d.mode = "play";
-          if (Math.random() < 0.3) { ball.position.x += (Math.random() - 0.5) * 2; ball.position.z += (Math.random() - 0.5) * 2; }
-        } else if (roll < 0.5) {
-          d.mode = "lay"; d.wait = 3 + Math.random() * 4;
-        } else if (roll < 0.7 && walkers.length) {
-          const n = walkers[Math.floor(Math.random() * walkers.length)];
-          d.tx = n.mesh.position.x + 0.5; d.tz = n.mesh.position.z + 0.3; d.mode = "follow";
-        } else if (roll < 0.82 && portalSpots().length) {
-          const p = portalSpots()[Math.floor(Math.random() * portalSpots().length)];
-          d.tx = p.x; d.tz = p.z; d.mode = "toPortal";
-        } else {
-          const s = spot(); d.tx = s[0]; d.tz = s[1]; d.mode = "play";
-        }
-        if (d.mode !== "lay") d.wait = 0.5;
-      }
-    } else {
-      d.mesh.position.x += (dx / dist) * d.speed * 0.016;
-      d.mesh.position.z += (dz / dist) * d.speed * 0.016;
-      d.mesh.rotation.y = Math.atan2(dx, dz);
-    }
-    if (d.mode === "toPortal" && dist < 1) { d.mode = "inPortal"; d.wait = 1; d.mesh.visible = false; }
-    if (d.mode === "lay") { d.mesh.position.y = -0.08; d.tail.rotation.z = 0.2; }
-    else { d.mesh.position.y = Math.abs(Math.sin(d.phase * 10)) * 0.02; d.tail.rotation.z = 0.8 + Math.sin(d.phase * 8) * 0.4; }
-  });
-  ball.position.y = 0.12 + Math.abs(Math.sin(performance.now() * 0.003)) * 0.04;
   renderer.render(scene, camera);
 })();
 const pillars = [];
