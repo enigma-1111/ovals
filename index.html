@@ -235,7 +235,7 @@ lctx.textBaseline = "middle";
 lctx.fillText("NEXT ROOM", 256, 64);
 const labelTex = new THREE.CanvasTexture(labelCanvas);
 const label = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: labelTex, transparent: true }));
-label.position.set(0, 2.3, 0);
+label.position.set(0, 1.15, 0.02);
 portal.add(oval, step, glow, label);
 scene.add(portal);
 const portalLight = new THREE.PointLight(0xffe8b0, 0.7, 8);
@@ -268,7 +268,7 @@ function makePortal(title, x, z, dest) {
   ctx.fillText(title, 256, 64);
   const tex = new THREE.CanvasTexture(c);
   const label = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
-  label.position.set(0, 2.5, 0);
+  label.position.set(0, 1.15, 0.02);
   g.add(oval, step, glow, label);
   scene.add(g);
   randomPortals.push({ mesh: g, x, z, dest, face });
