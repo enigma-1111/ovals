@@ -390,7 +390,7 @@ function faceYaw(mesh, x, z) {
   mesh.rotation.z = 0;
   mesh.rotation.y = Math.atan2(x - mesh.position.x, z - mesh.position.z);
 }
-function person(x, z, color, female, skinHex, hairHex) {
+function person(x, z, color, female, skinHex, hairHex, kid) {
   const g = new THREE.Group();
   const cloth = new THREE.MeshLambertMaterial({ color });
   const skin = new THREE.MeshLambertMaterial({ color: skinHex });
@@ -431,11 +431,12 @@ function person(x, z, color, female, skinHex, hairHex) {
     const armR = armL.clone();
     armR.position.x = 0.18;
     g.add(legL, legR, skirt, waist, chest, bust, neck, head, hair, armL, armR);
-    g.scale.set(0.96, 0.96, 0.96);
+    const base = kid ? 0.5 : 0.96;
+    g.scale.set(base, base, base);
     g.position.set(x, 0, z);
     scene.add(g);
     const s = spot();
-    walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.5 + Math.random() * 0.3, armL, armR, legL, legR, body: chest, mode: 'wander', portalTimer: 0 });
+    walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.5 + Math.random() * 0.3, armL, armR, legL, legR, body: chest, mode: 'wander', portalTimer: 0, baseScale: base });
     return g;
   }
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.72, 0.22), cloth);
@@ -456,10 +457,12 @@ function person(x, z, color, female, skinHex, hairHex) {
   const legR = legL.clone();
   legR.position.x = 0.09;
   g.add(body, neck, head, hair, armL, armR, legL, legR);
+  const base = kid ? 0.5 : 1;
+  g.scale.set(base, base, base);
   g.position.set(x, 0, z);
   scene.add(g);
   const s = spot();
-  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.55 + Math.random() * 0.35, armL, armR, legL, legR, body, mode: 'wander', portalTimer: 0 });
+  walkers.push({ mesh: g, tx: s[0], tz: s[1], face: s[2], wait: 2 + Math.random() * 4, phase: Math.random() * 6, speed: 0.55 + Math.random() * 0.35, armL, armR, legL, legR, body, mode: 'wander', portalTimer: 0, baseScale: base });
   return g;
 }
 const CLOTH = [0x8a3a32, 0x2f4a62, 0x3d3a34, 0xc45a4a, 0x4a5560, 0x6a3a52, 0x7a4a62, 0x2c3a4a];
@@ -483,7 +486,8 @@ function crowd(room) {
     const x = Math.cos(ang) * (B - 3) * r;
     const z = Math.sin(ang) * (A - 4) * r;
     const female = rnd() < 0.5;
-    person(x, z, CLOTH[Math.floor(rnd() * CLOTH.length)], female, SKIN[Math.floor(rnd() * SKIN.length)], HAIR[Math.floor(rnd() * HAIR.length)]);
+    const kid = rnd() < 0.4;
+    person(x, z, CLOTH[Math.floor(rnd() * CLOTH.length)], female, SKIN[Math.floor(rnd() * SKIN.length)], HAIR[Math.floor(rnd() * HAIR.length)], kid);
   }
 }
 const frames = [];
@@ -916,7 +920,7 @@ function animate() {
         }
         w.mesh.position.set(out.x, 0, out.z);
         w.mesh.visible = true;
-        w.mesh.scale.set(0.3, 0.3, 0.3);
+        const b = w.baseScale || 1; w.mesh.scale.set(b * 0.3, b * 0.3, b * 0.3);
         w.mode = "outPortal";
         const cx = out.x * 0.45, cz = out.z * 0.45;
         w.tx = cx; w.tz = cz; w.face = 0;
@@ -935,7 +939,8 @@ function animate() {
       return;
     }
     if (w.mode === "outPortal") {
-      const grow = Math.min(1, w.mesh.scale.x + 0.02);
+      const b = w.baseScale || 1;
+      const grow = Math.min(b, w.mesh.scale.x + 0.02);
       w.mesh.scale.set(grow, grow, grow);
       if (dist < 0.5 || grow >= 1) w.mode = "wander";
     }
@@ -958,7 +963,8 @@ function animate() {
       w.mesh.position.z += (dz / dist) * w.speed * 0.016;
       faceYaw(w.mesh, w.tx, w.tz);
       if (w.mode === "toPortal") {
-        const shrink = Math.max(0.2, 1 - (1.6 - Math.min(dist, 1.6)) / 1.6 * 0.6);
+        const b = w.baseScale || 1;
+        const shrink = Math.max(b * 0.2, b * (1 - (1.6 - Math.min(dist, 1.6)) / 1.6 * 0.6));
         w.mesh.scale.set(shrink, shrink, shrink);
       }
     }
