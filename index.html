@@ -59,7 +59,7 @@
   <input id="jump" inputmode="numeric" placeholder="Oval #" style="width:84px;text-align:center">
   <button id="jump-go">Go</button>
 </div>
-<div id="plaque"></div>
+<div id="plaque"><button id="plaque-x" style="position:absolute;top:6px;right:8px;border:0;background:transparent;color:#2b2116;font-size:18px;line-height:1">×</button></div>
 <div id="stick"><div id="knob"></div></div>
 <div class="sheet" id="rules">
   <div class="panel">
@@ -786,10 +786,13 @@ function tryOpenPlaque(e) {
   p.style.display = "block";
   const n = f.nft || {};
   const bits = [n.year, n.method, n.gaze, n.epoch].filter(Boolean).join(" · ");
-  p.innerHTML = "<b>" + (n.name || ("Oval " + n.id)) + "</b>" +
+  p.innerHTML = "<button id='plaque-x' style='position:absolute;top:6px;right:8px;border:0;background:transparent;color:#2b2116;font-size:18px;line-height:1'>×</button><b>" + (n.name || ("Oval " + n.id)) + "</b>" +
     (bits ? "<span class='meta'>" + bits + "</span>" : "<span class='meta'>Oval " + n.id + "</span>") +
     "<a href='" + sea(n.id) + "' target='_blank' rel='noopener'>View on OpenSea</a>";
 }
+document.getElementById("plaque").addEventListener("click", (e) => {
+  if (e.target.id === "plaque-x") document.getElementById("plaque").style.display = "none";
+});
 renderer.domElement.addEventListener("pointerup", tryOpenPlaque);
 renderer.domElement.addEventListener("touchend", (e) => {
   if (e.changedTouches && e.changedTouches[0]) tryOpenPlaque(e.changedTouches[0]);
