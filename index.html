@@ -672,7 +672,7 @@ async function fillWing(n) {
       filled++;
     });
   }
-  status.textContent = style.name + " room · " + filled + " of 100";
+  status.textContent = style.name + " room · " + start + "–" + (start + 99);
   markHeld();
   camera.position.set(0, 1.6, 0);
   yaw = Math.PI; pitch = 0;
