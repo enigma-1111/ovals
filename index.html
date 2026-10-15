@@ -549,15 +549,15 @@ scene.add(ball);
 function dog(x, z, color) {
   const g = new THREE.Group();
   const fur = new THREE.MeshLambertMaterial({ color });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.36), fur);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 0.52), fur);
   body.position.y = 0.22;
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), fur);
-  head.position.set(0, 0.32, 0.2);
+  head.position.set(0, 0.46, 0.28);
   const earL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), fur);
-  earL.position.set(0.06, 0.4, 0.16);
+  earL.position.set(0.08, 0.56, 0.22);
   const earR = earL.clone(); earR.position.x = -0.06;
   const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), fur);
-  tail.position.set(0, 0.3, -0.2);
+  tail.position.set(0, 0.42, -0.28);
   tail.rotation.x = 0.8;
   const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 6), fur);
   [[0.06, 0.1], [-0.06, 0.1], [0.06, -0.1], [-0.06, -0.1]].forEach(([lx, lz]) => {
@@ -572,16 +572,16 @@ const dogFloor = Array.from({ length: 10 }, (_, i) => (i * 17) % 100);
 function placeDogs(room) {
   dogs.forEach(d => scene.remove(d.mesh));
   dogs.length = 0;
-  const here = dogFloor.map((f, i) => f === (room % 100) ? i : -1).filter(i => i >= 0).slice(0, 2);
-  if (!here.length && (room % 7) === 0) here.push(room % 10);
-  const colors = [0xc4a574, 0x8a5a3a, 0xf1d2b8, 0x4a2418, 0xd7a87a, 0x2c241c, 0xe8c4a0, 0x6b4423, 0xa56b45, 0x3a2218];
   const rnd = roomRand(room + 33);
-  here.forEach((id) => {
+  const count = 1 + Math.floor(rnd() * 2);
+  const colors = [0xc4a574, 0x8a5a3a, 0xf1d2b8, 0x4a2418, 0xd7a87a, 0x2c241c, 0xe8c4a0, 0x6b4423, 0xa56b45, 0x3a2218];
+  for (let i = 0; i < count; i++) {
     const ang = rnd() * Math.PI * 2;
-    const r = 0.3 + rnd() * 0.4;
-    dog(Math.cos(ang) * (B - 5) * r, Math.sin(ang) * (A - 6) * r, colors[id]);
+    const r = 1.2 + rnd() * 2.4;
+    const id = (room * 2 + i) % 10;
+    dog(Math.cos(ang) * r, Math.sin(ang) * r, colors[id]);
     dogs[dogs.length - 1].id = id;
-  });
+  }
   ball.visible = dogs.length > 0;
   if (dogs.length) ball.position.set(dogs[0].mesh.position.x + 1, 0.12, dogs[0].mesh.position.z);
 }
