@@ -1038,12 +1038,37 @@ function animate() {
       w.mesh.rotation.y += d * 0.1;
     }
     const moving = !idle && dist >= 0.45;
-    const swing = moving ? Math.sin(w.phase * 8) * 0.22 : Math.sin(w.phase * 1.2) * 0.03;
-    w.armL.rotation.x = swing;
-    w.armR.rotation.x = -swing * 0.8;
-    w.legL.rotation.x = -swing * 0.55;
-    w.legR.rotation.x = swing * 0.55;
-    if (!idle) w.mesh.position.y = Math.abs(Math.sin(w.phase * 8)) * 0.015;
+    if (moving) {
+      const step = Math.sin(w.phase * 9);
+      w.armL.rotation.x = step * 0.45;
+      w.armR.rotation.x = -step * 0.45;
+      w.legL.rotation.x = -step * 0.5;
+      w.legR.rotation.x = step * 0.5;
+      w.body.rotation.x = 0.08;
+      w.mesh.position.y = Math.abs(step) * 0.03;
+    } else if (w.mode === "sit") {
+      w.armL.rotation.x = 0.3;
+      w.armR.rotation.x = 0.3;
+      w.legL.rotation.x = 1.1;
+      w.legR.rotation.x = 1.1;
+      w.body.rotation.x = 0.15;
+      w.mesh.position.y = -0.22 * b;
+    } else if (w.mode === "look" || w.mode === "glance") {
+      const nod = Math.sin(w.phase * 1.4) * 0.06;
+      w.armL.rotation.x = 0.15;
+      w.armR.rotation.x = -0.4;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      w.body.rotation.x = nod;
+      w.mesh.position.y = 0;
+    } else {
+      w.armL.rotation.x = 0;
+      w.armR.rotation.x = 0;
+      w.legL.rotation.x = 0;
+      w.legR.rotation.x = 0;
+      w.body.rotation.x = 0;
+      w.mesh.position.y = 0;
+    }
   });
   renderer.render(scene, camera);
 }
