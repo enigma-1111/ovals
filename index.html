@@ -168,6 +168,12 @@ const STYLES = [
 const floor = mesh(new THREE.CircleGeometry(1, 64), 0xc4a574, 0, 0, 0);
 floor.rotation.x = -Math.PI / 2;
 floor.scale.set(B, A, 1);
+const seam = new THREE.Mesh(new THREE.RingGeometry(6.2, 6.35, 64), new THREE.MeshBasicMaterial({ color: 0xc6a15b, side: THREE.DoubleSide }));
+seam.rotation.x = -Math.PI / 2; seam.position.y = 0.015;
+scene.add(seam);
+const centerRug = new THREE.Mesh(new THREE.CircleGeometry(3.2, 40), new THREE.MeshLambertMaterial({ color: 0x8a5a3a }));
+centerRug.rotation.x = -Math.PI / 2; centerRug.position.y = 0.02;
+scene.add(centerRug);
 const ceil = mesh(new THREE.CircleGeometry(1, 64), 0xf4f1ec, 0, 5.8, 0);
 ceil.rotation.x = Math.PI / 2;
 ceil.scale.set(B, A, 1);
