@@ -740,15 +740,38 @@ renderer.domElement.addEventListener("touchend", (e) => {
 }, {passive: true});
 function validAddress(a) { return /^0x[0-9a-fA-F]{40}$/.test(a); }
 function discovered() {
+  const out = [];
   const w = window.ethereum;
-  if (!w) return [];
-  if (Array.isArray(w.providers)) return w.providers;
-  return [w];
+  if (w) {
+    if (Array.isArray(w.providers)) w.providers.forEach(p => out.push(p));
+    else out.push(w);
+  }
+  if (window.coinbaseWalletExtension) out.push(window.coinbaseWalletExtension);
+  return out;
+}
+function waitForWallet(ms) {
+  return new Promise(resolve => {
+    const found = discovered();
+    if (found.length) return resolve(found);
+    let done = false;
+    const finish = () => { if (done) return; done = true; resolve(discovered()); };
+    window.addEventListener("ethereum#initialized", finish, { once: true });
+    setTimeout(finish, ms);
+  });
 }
 async function connectInjected(provider) {
+  try { await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x1237" }] }); } catch (e) {}
   const accounts = await provider.request({ method: "eth_requestAccounts" });
   if (!accounts || !accounts[0]) throw new Error("No account.");
   await enter(accounts[0]);
+}
+async function connectHere() {
+  const note = document.getElementById("sheet-note");
+  note.textContent = "Looking for a wallet…";
+  const list = await waitForWallet(1200);
+  if (!list[0]) { note.textContent = "No wallet in this browser. Use a button below, or paste the address."; return; }
+  try { await connectInjected(list[0]); }
+  catch (err) { note.textContent = (err && err.message) ? err.message : "Refused."; }
 }
 async function enter(address) {
   if (!validAddress(address)) throw new Error("Bad address.");
@@ -824,7 +847,8 @@ async function showOval() {
   if (!live) { el.textContent = "The coin is not yet in the room."; return; }
   el.textContent = ovalBalance > 0 ? "Your OVAL: " + ovalBalance.toFixed(2) + ". The coin is on this address." : "No OVAL on this address.";
 }
-document.getElementById("use-here").onclick = async () => { const list = discovered(); if (!list[0]) { document.getElementById("sheet-note").textContent = "No wallet in this browser. Paste the address."; return; } try { await connectInjected(list[0]); } catch (err) { document.getElementById("sheet-note").textContent = err.message || "Refused."; } };
+document.getElementById("use-here").onclick = connectHere;
+window.addEventListener("load", () => { if (discovered().length) connectHere(); });
 document.getElementById("use-addr").onclick = async () => { const address = document.getElementById("addr").value.trim(); if (!validAddress(address)) { document.getElementById("sheet-note").textContent = "Paste the full 0x address."; return; } await enter(address); };
 function animate() {
   requestAnimationFrame(animate);
