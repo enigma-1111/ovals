@@ -502,8 +502,8 @@ function person(x, z, color, female, skinHex, hairHex, kid) {
   return g;
 }
 const CLOTH = [0x8a3a32, 0x2f4a62, 0x3d3a34, 0xc45a4a, 0x4a5560, 0x6a3a52, 0x7a4a62, 0x2c3a4a];
-const SKIN = [0xf1d2b8, 0xe8c4a0, 0xd7a87a, 0xc48a62, 0xa56b45, 0x8d5a3c];
-const HAIR = [0x1a120e, 0x4a2418, 0x2c241c, 0xc4a06a, 0x1c140e, 0x3a2218, 0x6b3a28];
+const SKIN = [0xffe0c4, 0xf1d2b8, 0xe8c4a0, 0xd7a87a, 0xc48a62, 0xb07a52, 0xa56b45, 0x8d5a3c, 0x6b3e2a, 0x4a2c1c, 0xf5d0b5, 0xc9956c];
+const HAIR = [0x1a120e, 0x0e0a08, 0x4a2418, 0x2c241c, 0xc4a06a, 0xe8d5a0, 0x8a5a2a, 0x6b3a28, 0x3a2218, 0x1c140e, 0xa67c52, 0x5a3a28, 0xd4c4a8, 0x2a1a12];
 function roomRand(seed) {
   let s = (seed * 1103515245 + 12345) & 0x7fffffff;
   return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
@@ -515,7 +515,7 @@ function clearCrowd() {
 function crowd(room) {
   clearCrowd();
   const rnd = roomRand(room + 7);
-  const count = 1 + Math.floor(rnd() * 11);
+  const count = 6 + Math.floor(rnd() * 13);
   for (let i = 0; i < count; i++) {
     const ang = rnd() * Math.PI * 2;
     const r = 0.25 + rnd() * 0.55;
